@@ -1,25 +1,30 @@
 import os
-import numpy as np
-from PIL import Image
 from pdf2image import convert_from_path
 import pytesseract
 
 file_path = "data/DR1022-80447_Determination_ORder.pdf"
 
-# load the pdf document
-doc = convert_from_path(file_path)
 
-path, file_name = os.path.split(file_path)
-base_name, extension = os.path.splitext(file_name)
+def pdf2text(file_path):
+    # convert the pages of the PDF to a list of PIL images
+    images = convert_from_path(file_path)
 
-# loop through document pages
-for page_number, page_data in enumerate(doc):
-    # image_bytes = page_data.tobytes()
-    a = np.asarray(page_data)
-    img = Image.fromarray(a)
-    txt = pytesseract.image_to_string(img)
+    # extract the file name
+    path, file_name = os.path.split(file_path)
+    base_name, extension = os.path.splitext(file_name)
 
-    print(f"Page # {str(page_number)}\n\n{txt}")
+    # loop through document pages
+    for page_number, image_data in enumerate(images):
+        # extract text from image
+        txt = pytesseract.image_to_string(image_data)
 
-    with open(f"{base_name}.txt", mode="w") as f:
+        print(f"Page # {str(page_number)}\n\n{txt}")
+
+    # TODO: Combine text from multiple pages
+
+    # write text to file
+    with open(f"data/{base_name}.txt", mode="w") as f:
         f.write(txt)
+
+
+pdf2text(file_path)
