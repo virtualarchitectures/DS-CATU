@@ -19,34 +19,31 @@ def get_file_paths(input_folder):
     return file_paths
 
 
-def pdf2text(file_path):
-    # convert the pages of the PDF to a list of PIL images
+def pdf2text(file_path, output_folder):
     images = convert_from_path(file_path)
 
-    # extract the file name
+    # Extract the file name
     path, file_name = os.path.split(file_path)
     base_name, extension = os.path.splitext(file_name)
 
-    # loop through document pages
+    # Combine text from multiple pages
+    combined_text = ""
     for page_number, image_data in enumerate(images):
-        # extract text from image
         txt = pytesseract.image_to_string(image_data)
+        combined_text += f"Page # {str(page_number)}\n\n{txt}\n\n"
 
-        print(f"Page # {str(page_number)}\n\n{txt}")
-
-    # TODO: Combine text from multiple pages
-
-    # write text to file
-    with open(f"{output_folder}{base_name}.txt", mode="w") as f:
-        f.write(txt)
+    # Write combined text to a file
+    output_file_path = os.path.join(output_folder, f"{base_name}.txt")
+    with open(output_file_path, mode="w") as f:
+        f.write(combined_text)
 
 
-def process_determination_orders():
+def process_determination_orders(input_folder, output_folder):
     file_paths = get_file_paths(input_folder)
 
     for file_path in file_paths:
-        pdf2text(file_path)
-        print(file_paths)
+        pdf2text(file_path, output_folder)
+        print(f"Processed: {file_path}")
 
 
-process_determination_orders()
+process_determination_orders(input_folder, output_folder)
