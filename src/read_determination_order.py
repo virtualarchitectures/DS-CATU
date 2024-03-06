@@ -2,7 +2,21 @@ import os
 from pdf2image import convert_from_path
 import pytesseract
 
-file_path = "data/DR1022-80447_Determination_ORder.pdf"
+input_folder = "data/input/"
+output_folder = "data/output/"
+
+
+def get_file_paths(input_folder):
+    file_paths = []
+
+    # Loop through the files in the input folder
+    for root, dirs, files in os.walk(input_folder):
+        for file in files:
+            # Construct the full file path
+            file_path = os.path.join(root, file)
+            file_paths.append(file_path)
+
+    return file_paths
 
 
 def pdf2text(file_path):
@@ -23,8 +37,16 @@ def pdf2text(file_path):
     # TODO: Combine text from multiple pages
 
     # write text to file
-    with open(f"data/{base_name}.txt", mode="w") as f:
+    with open(f"{output_folder}{base_name}.txt", mode="w") as f:
         f.write(txt)
 
 
-pdf2text(file_path)
+def process_determination_orders():
+    file_paths = get_file_paths(input_folder)
+
+    for file_path in file_paths:
+        pdf2text(file_path)
+        print(file_paths)
+
+
+process_determination_orders()
