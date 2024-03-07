@@ -30,6 +30,7 @@ def pdf2text(file_path, output_folder):
     combined_text = ""
     for page_number, image_data in enumerate(images):
         txt = pytesseract.image_to_string(image_data)
+        txt = txt.replace("\x0c", "")  # Remove form feed character
         combined_text += f"Page # {str(page_number)}\n\n{txt}\n\n"
 
     # Write combined text to a file
