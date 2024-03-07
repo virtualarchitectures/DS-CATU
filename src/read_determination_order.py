@@ -19,7 +19,7 @@ def get_file_paths(input_folder):
     return file_paths
 
 
-def pdf2text(file_path, output_folder):
+def pdf2text(file_path, output_folder, page_numbers=False):
     images = convert_from_path(file_path)
 
     # Extract the file name
@@ -28,10 +28,20 @@ def pdf2text(file_path, output_folder):
 
     # Combine text from multiple pages
     combined_text = ""
-    for page_number, image_data in enumerate(images):
+
+    # Iterate through pages
+    for page_number, image_data in enumerate(images, start=1):
         txt = pytesseract.image_to_string(image_data)
-        txt = txt.replace("\x0c", "")  # Remove form feed character
-        combined_text += f"Page # {str(page_number)}\n\n{txt}\n\n"
+
+        # Remove form feed character
+        txt = txt.replace("\x0c", "")
+
+        # Combine pages and add page numbers if requested
+        if page_numbers:
+            combined_text += f"Page # {str(page_number)}\n\n"
+            combined_text += f"{txt}\n\n"
+        else:
+            combined_text += f"{txt}"
 
     # Write combined text to a file
     output_file_path = os.path.join(output_folder, f"{base_name}.txt")
@@ -39,12 +49,12 @@ def pdf2text(file_path, output_folder):
         f.write(combined_text)
 
 
-def process_determination_orders(input_folder, output_folder):
+def process_determination_orders(input_folder, output_folder, page_numbers=False):
     file_paths = get_file_paths(input_folder)
 
     for file_path in file_paths:
-        pdf2text(file_path, output_folder)
+        pdf2text(file_path, output_folder, page_numbers)
         print(f"Processed: {file_path}")
 
 
-process_determination_orders(input_folder, output_folder)
+process_determination_orders(input_folder, output_folder, page_numbers=False)
