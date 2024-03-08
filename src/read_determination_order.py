@@ -37,26 +37,29 @@ def join_rows(text):
     # Accumulate lines into paragraphs
     current_paragraph = ""
     for line in lines:
-        # If the line is not empty and doesn't end with a colon
-        if line.strip() and not line.strip().endswith(":"):
+        # If the line is not empty
+        if line.strip():
             # Add the line to the current paragraph
             current_paragraph += line + " "
-        else:
-            # If there's content in the current paragraph
-            if current_paragraph:
-                # Add the paragraph to the result
+            # If the line ends with a colon or full stop, start a new paragraph
+            if line.strip().endswith(":") or line.strip().endswith("."):
                 result.append(current_paragraph.strip())
-                # Reset the current paragraph
                 current_paragraph = ""
-            # Add the line to the result
-            result.append(line)
+        else:
+            # Add the current paragraph to the result if not empty
+            if current_paragraph:
+                result.append(current_paragraph.strip())
+                current_paragraph = ""
 
-    # Add the current paragraph to the result if not empty
+    # Add the remaining paragraph to the result if not empty
     if current_paragraph:
         result.append(current_paragraph.strip())
 
     # Join the paragraphs with newlines and return the result
     return "\n".join(result)
+
+
+# TODO: Improve Keyword Matching
 
 
 def find_keywords(text, keywords):
