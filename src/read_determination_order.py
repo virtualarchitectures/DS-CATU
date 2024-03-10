@@ -1,4 +1,5 @@
 import os
+import csv
 from pdf2image import convert_from_path
 import pytesseract
 
@@ -6,6 +7,8 @@ input_folder = "data/input/"
 output_folder = "data/output/"
 
 keywords_file = "reference/keywords.txt"
+
+csv_output_file_path = "data/output/case_details.csv"
 
 
 def read_keywords(file_path):
@@ -106,17 +109,33 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     # Join lines that don't end with a full stop
     combined_text = join_rows(combined_text)
 
+    # TODO: Extract Landlord and Tenant Names
+
     # List determination keywords
-    find_keywords(txt)
+    keywords_list = find_keywords(txt)
 
     # Write combined text to a file
     output_file_path = os.path.join(output_folder, f"{base_name}.txt")
     with open(output_file_path, mode="w") as f:
         f.write(combined_text)
 
+    # Write to CSV file
+    with open(csv_output_file_path, mode="a", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(
+            [file_name, os.path.basename(output_file_path), keywords_list]
+        )
+
 
 def process_determination_orders(input_folder, output_folder, page_numbers=False):
     file_paths = get_file_paths(input_folder)
+
+    # Write CSV header
+    with open(csv_output_file_path, mode="w", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(
+            ["Input Filename", "Output Filename", "Keywords", "Comments"]
+        )
 
     for file_path in file_paths:
         print(f"Processing: {file_path}")
