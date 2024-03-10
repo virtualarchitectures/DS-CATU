@@ -89,6 +89,9 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     path, file_name = os.path.split(file_path)
     base_name, extension = os.path.splitext(file_name)
 
+    # Get the number of pages
+    page_count = len(images)
+
     # Combine text from multiple pages
     combined_text = ""
 
@@ -123,7 +126,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     with open(csv_output_file_path, mode="a", newline="") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(
-            [file_name, os.path.basename(output_file_path), keywords_list]
+            [file_name, page_count, os.path.basename(output_file_path), keywords_list]
         )
 
 
@@ -134,7 +137,7 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
     with open(csv_output_file_path, mode="w", newline="") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(
-            ["Input Filename", "Output Filename", "Keywords", "Comments"]
+            ["Input Filename", "Page Count", "Output Filename", "Keywords", "Comments"]
         )
 
     for file_path in file_paths:
