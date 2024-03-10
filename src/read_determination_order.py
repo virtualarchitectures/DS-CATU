@@ -5,12 +5,25 @@ import pytesseract
 input_folder = "data/input/"
 output_folder = "data/output/"
 
-determination_keywords = [
-    "unlawful termination",
-    "unjustifiably retained security deposit",
+keywords = [
+    "abuse",
+    "unlawful",
+    "unjustified",
+    "unjustifiable",
+    "unjustifiably",
+    "terminated",
+    "termination",
+    "retained",
+    "retention",
+    "security deposit",
     "peaceful occupation",
     "standard and maintenance",
-    "illegal eviction",
+    "standards and maintenance" "illegal",
+    "eviction",
+    "parties themselves",
+    "121",
+    "12(1)(a)",
+    "12(1)(b)",
 ]
 
 
@@ -105,7 +118,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     combined_text = join_rows(combined_text)
 
     # List determination keywords
-    find_keywords(txt, determination_keywords)
+    find_keywords(txt, keywords)
 
     # Write combined text to a file
     output_file_path = os.path.join(output_folder, f"{base_name}.txt")
