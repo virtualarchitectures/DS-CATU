@@ -74,7 +74,7 @@ def find_keywords(text):
         if keyword.lower() in text_lower:
             matches.append(keyword)
 
-    print(matches)
+    print(f"Keyword matches {matches}")
 
     return matches
 
@@ -119,8 +119,8 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
     file_paths = get_file_paths(input_folder)
 
     for file_path in file_paths:
+        print(f"Processing: {file_path}")
         pdf2text(file_path, output_folder, page_numbers)
-        print(f"Processed: {file_path}")
 
 
 process_determination_orders(input_folder, output_folder, page_numbers=False)
