@@ -77,7 +77,7 @@ def find_keywords(text):
         if keyword.lower() in text_lower:
             matches.append(keyword)
 
-    print(f"Keyword matches {matches}")
+    print(f"Keyword matches: {matches}")
 
     return matches
 
@@ -91,6 +91,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
 
     # Get the number of pages
     page_count = len(images)
+    print(f"Pages: {page_count}")
 
     # Combine text from multiple pages
     combined_text = ""
