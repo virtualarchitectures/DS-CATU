@@ -5,26 +5,13 @@ import pytesseract
 input_folder = "data/input/"
 output_folder = "data/output/"
 
-keywords = [
-    "abuse",
-    "unlawful",
-    "unjustified",
-    "unjustifiable",
-    "unjustifiably",
-    "terminated",
-    "termination",
-    "retained",
-    "retention",
-    "security deposit",
-    "peaceful occupation",
-    "standard and maintenance",
-    "standards and maintenance" "illegal",
-    "eviction",
-    "parties themselves",
-    "121",
-    "12(1)(a)",
-    "12(1)(b)",
-]
+keywords_file = "reference/keywords.txt"
+
+
+def read_keywords(file_path):
+    with open(file_path, "r") as file:
+        keywords = [line.strip() for line in file.readlines() if line.strip()]
+    return keywords
 
 
 def get_file_paths(input_folder):
@@ -72,14 +59,16 @@ def join_rows(text):
     return "\n".join(result)
 
 
-# TODO: Improve Keyword Matching
-
-
-def find_keywords(text, keywords):
+def find_keywords(text):
     matches = []
+
+    # Read the keywords file
+    keywords = read_keywords(keywords_file)
+
     # Convert the text to lowercase for case-insensitive matching
     text_lower = text.lower()
 
+    # Search file for matches in keywords
     for keyword in keywords:
         # Check if the lowercase keyword exists in the lowercase text
         if keyword.lower() in text_lower:
@@ -118,7 +107,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     combined_text = join_rows(combined_text)
 
     # List determination keywords
-    find_keywords(txt, keywords)
+    find_keywords(txt)
 
     # Write combined text to a file
     output_file_path = os.path.join(output_folder, f"{base_name}.txt")
