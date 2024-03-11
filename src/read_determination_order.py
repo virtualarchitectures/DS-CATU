@@ -1,4 +1,5 @@
 import os
+import re
 import csv
 from pdf2image import convert_from_path
 import pytesseract
@@ -62,6 +63,44 @@ def join_rows(text):
     return "\n".join(result)
 
 
+def extract_names(text):
+    applicant_tenant = None
+    respondent_landlord = None
+    applicant_landlord = None
+    respondent_tenant = None
+
+    # Define two alternate regular expression patterns
+    pattern1 = (
+        r"In the matter of (.+?) \[Applicant Tenant\] and (.+?) \[Respondent Landlord\]"
+    )
+    pattern2 = (
+        r"In the matter of (.+?) \[Applicant Landlord\] and (.+?) \[Respondent Tenant\]"
+    )
+
+    # Try to find a match using the first pattern
+    match1 = re.search(pattern1, text)
+
+    # If the first pattern doesn't match, try the second pattern
+    if match1:
+        # Extract the names for 'Applicant Tenant' and 'Respondent Landlord' using the first pattern
+        applicant_tenant = match1.group(1)
+        respondent_landlord = match1.group(2)
+        print(f"Applicant Tenant: {applicant_tenant}")
+        print(f"Respondent Landlord: {respondent_landlord}")
+    else:
+        match2 = re.search(pattern2, text)
+        if match2:
+            # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
+            applicant_landlord = match2.group(1)
+            respondent_tenant = match2.group(2)
+            print(f"Applicant Landlord: {applicant_landlord}")
+            print(f"Respondent Tenant: {respondent_tenant}")
+        else:
+            print("Unable to identify applicant and respondent!")
+
+    return applicant_tenant, respondent_landlord, applicant_landlord, respondent_tenant
+
+
 def find_keywords(text):
     matches = []
 
@@ -114,6 +153,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     combined_text = join_rows(combined_text)
 
     # TODO: Extract Landlord and Tenant Names
+    extracted_names = extract_names(combined_text)
 
     # List determination keywords
     keywords_list = find_keywords(txt)
