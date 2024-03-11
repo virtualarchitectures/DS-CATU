@@ -64,10 +64,10 @@ def join_rows(text):
 
 
 def extract_names(text):
-    applicant_tenant = None
-    respondent_landlord = None
-    applicant_landlord = None
-    respondent_tenant = None
+    tenant_name = None
+    landlord_name = None
+    tenant_role = None
+    landlord_role = None
 
     # Define two alternate regular expression patterns
     pattern1 = (
@@ -83,22 +83,26 @@ def extract_names(text):
     # If the first pattern doesn't match, try the second pattern
     if match1:
         # Extract the names for 'Applicant Tenant' and 'Respondent Landlord' using the first pattern
-        applicant_tenant = match1.group(1)
-        respondent_landlord = match1.group(2)
-        print(f"Applicant Tenant: {applicant_tenant}")
-        print(f"Respondent Landlord: {respondent_landlord}")
+        tenant_name = match1.group(1)
+        landlord_name = match1.group(2)
+        tenant_role = "Applicant"
+        landlord_role = "Respondent"
+        print(f"Tenant: {tenant_name} / {tenant_role}")
+        print(f"Landlord: {landlord_name} / {landlord_role}")
     else:
         match2 = re.search(pattern2, text)
         if match2:
             # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
-            applicant_landlord = match2.group(1)
-            respondent_tenant = match2.group(2)
-            print(f"Applicant Landlord: {applicant_landlord}")
-            print(f"Respondent Tenant: {respondent_tenant}")
+            landlord_name = match2.group(1)
+            tenant_name = match2.group(2)
+            landlord_role = "Applicant"
+            tenant_role = "Respondent"
+            print(f"Tenant: {tenant_name} / {tenant_role}")
+            print(f"Landlord: {landlord_name} / {landlord_role}")
         else:
             print("Unable to identify applicant and respondent!")
 
-    return applicant_tenant, respondent_landlord, applicant_landlord, respondent_tenant
+    return tenant_name, tenant_role, landlord_name, landlord_role
 
 
 def find_keywords(text):
@@ -152,8 +156,10 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     # Join lines that don't end with a full stop
     combined_text = join_rows(combined_text)
 
-    # TODO: Extract Landlord and Tenant Names
-    extracted_names = extract_names(combined_text)
+    # Extract Landlord and Tenant Names
+    tenant_name, tenant_role, landlord_name, landlord_role = extract_names(
+        combined_text
+    )
 
     # List determination keywords
     keywords_list = find_keywords(txt)
@@ -167,7 +173,16 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     with open(csv_output_file_path, mode="a", newline="") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(
-            [file_name, page_count, os.path.basename(output_file_path), keywords_list]
+            [
+                file_name,
+                page_count,
+                os.path.basename(output_file_path),
+                keywords_list,
+                tenant_name,
+                tenant_role,
+                landlord_name,
+                landlord_role,
+            ]
         )
 
 
@@ -178,7 +193,17 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
     with open(csv_output_file_path, mode="w", newline="") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(
-            ["Input Filename", "Page Count", "Output Filename", "Keywords", "Comments"]
+            [
+                "Input Filename",
+                "Page Count",
+                "Output Filename",
+                "Keywords",
+                "Tenant Name",
+                "Tenant Role",
+                "Landlord Name",
+                "Landlord Role",
+                "Comments",
+            ]
         )
 
     for file_path in file_paths:
