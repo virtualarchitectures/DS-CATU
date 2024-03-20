@@ -62,6 +62,29 @@ if ! command -v tesseract &> /dev/null; then
     sudo apt-get install -y tesseract-ocr libtesseract-dev || error_exit "Failed to install Tesseract OCR"
 fi
 
+# Install Chromedriver
+echo "Installing Chromedriver..."
+# Install the unzip utility
+sudo apt-get install unzip &&
+# Store the machine architecture in a variable
+a=$(uname -m) &&\
+# Lookup the latest release version number of Chromedriver
+wget -O chromedriver/LATEST_RELEASE.txt http://chromedriver.storage.googleapis.com/LATEST_RELEASE &&
+# Determine the appropriate version (32-bit or 64-bit) based on machine architecture
+if [ $a == i686 ]; then 
+    b=32 
+elif [ $a == x86_64 ]; then 
+    b=64 
+fi &&
+latest=$(cat chromedriver/LATEST_RELEASE.txt) &&
+# Download the latest version of Chromedriver based on the architecture
+wget -O chromedriver/chromedriver.zip 'http://chromedriver.storage.googleapis.com/'$latest'/chromedriver_linux'$b'.zip' &&
+# Unzip the downloaded Chromedriver into the 'chromedriver' directory
+unzip chromedriver/chromedriver.zip -d chromedriver/ || error_exit "Failed to unzip Chomedriver.zip" &&
+rm -rf chromedriver/chromedriver.zip || error_exit "Failed to remove Chomedriver.zip" &&
+rm -rf chromedriver/LATEST_RELEASE.txt || error_exit "Failed to remove LATEST_RELEASE.txt" &&
+echo "Chromedriver successfully installed!"
+
 # Install requirements
 if [ -f requirements.txt ]; then
     echo "Installing Python requirements..."
