@@ -1,12 +1,19 @@
 #!/bin/bash
 
-# Initialise existing Conda installation if not already initialised
-eval "$(conda shell.bash hook)"
-
 # Define the name of your Conda environment
 ENV_NAME="DS-CATU"
 
-# Check if Miniconda is already installed
+# Function to handle errors
+error_exit()
+{
+    echo "Error: $1"
+    exit 1
+}
+
+# Initialise existing Conda installation if not already initialised
+eval "$(conda shell.bash hook)"
+
+# Install Miniconda if Conda is not already installed
 if command -v conda &> /dev/null; then
     echo "Miniconda is already installed"
 else
@@ -38,6 +45,7 @@ echo "Creating project folders..."
 mkdir -p data/input
 mkdir -p data/output
 mkdir -p reference
+mkdir -p chromedriver
 
 # Add Conda Forge as a channel if not added already
 conda config --add channels conda-forge
