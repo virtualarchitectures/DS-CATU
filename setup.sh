@@ -11,10 +11,17 @@ error_exit()
     exit 1
 }
 
+# Create project folders if they don't exist
+echo "Creating project folders..."
+mkdir -p data/input
+mkdir -p data/output
+mkdir -p reference
+mkdir -p chromedriver
+
 # Initialise existing Conda installation if not already initialised
 eval "$(conda shell.bash hook)"
 
-# Check if Conda is already installed
+# Install Miniconda if not installed
 if ! command -v conda &> /dev/null; then
     echo "Installing Miniconda..."
     # Make directory for Miniconda installation
@@ -40,13 +47,6 @@ echo "Conda environment '$ENV_NAME' created successfully."
 # Activate Conda environment
 echo "Activating Conda environment '$ENV_NAME'..."
 conda activate $ENV_NAME || error_exit "Failed to activate Conda environment"
-
-# Create project folders if they don't exist
-echo "Creating project folders..."
-mkdir -p data/input
-mkdir -p data/output
-mkdir -p reference
-mkdir -p chromedriver
 
 # Add Conda Forge as a channel if not added already
 conda config --add channels conda-forge
