@@ -2,6 +2,7 @@
 
 # Define the name of your Conda environment
 ENV_NAME="DS-CATU"
+PYTHON_VERSION="3.8"
 
 # Function to handle errors
 error_exit()
@@ -13,10 +14,8 @@ error_exit()
 # Initialise existing Conda installation if not already initialised
 eval "$(conda shell.bash hook)"
 
-# Install Miniconda if Conda is not already installed
-if command -v conda &> /dev/null; then
-    echo "Miniconda is already installed"
-else
+# Check if Conda is already installed
+if ! command -v conda &> /dev/null; then
     echo "Installing Miniconda..."
     # Make directory for Miniconda installation
     mkdir -p ~/miniconda3 || error_exit "Failed to create Miniconda directory"
@@ -26,19 +25,21 @@ else
     bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3 || error_exit "Failed to install Miniconda"
     # Remove Miniconda installer
     rm -rf ~/miniconda3/miniconda.sh || error_exit "Failed to remove Miniconda installer"
-    echo "Miniconda installed successfully and initialised"
-    # Initialise miniconda
+    echo "Miniconda installed successfully and initialized"
+    # Initialise Miniconda
     ~/miniconda3/bin/conda init bash
+else
+    echo "Miniconda is already installed"
 fi
 
 # Create new Conda environment
-echo "Creating Conda environment..."
-conda create -y -n $ENV_NAME python=3.12
+echo "Creating Conda environment '$ENV_NAME' with Python $PYTHON_VERSION..."
+conda create -y -n $ENV_NAME python=$PYTHON_VERSION || error_exit "Failed to create Conda environment"
 echo "Conda environment '$ENV_NAME' created successfully."
 
 # Activate Conda environment
-echo "Activating Conda environment 'DS-CATU'..."
-conda activate $ENV_NAME
+echo "Activating Conda environment '$ENV_NAME'..."
+conda activate $ENV_NAME || error_exit "Failed to activate Conda environment"
 
 # Create project folders if they don't exist
 echo "Creating project folders..."
@@ -52,17 +53,19 @@ conda config --add channels conda-forge
 
 # Install specific version of Poppler
 echo "Installing Poppler PDF utility..."
-conda install -y -c conda-forge poppler
+conda install -y -c conda-forge poppler || error_exit "Failed to install Poppler"
 
-# Install tesseract binaries
-echo "Installing Tesseract OCR binaries..."
-sudo apt install tesseract-ocr
-sudo apt install libtesseract-dev
+# Install Tesseract OCR binaries if not already installed
+if ! command -v tesseract &> /dev/null; then
+    echo "Installing Tesseract OCR binaries..."
+    sudo apt-get update || error_exit "Failed to update apt repositories"
+    sudo apt-get install -y tesseract-ocr libtesseract-dev || error_exit "Failed to install Tesseract OCR"
+fi
 
 # Install requirements
 if [ -f requirements.txt ]; then
     echo "Installing Python requirements..."
-    pip install -r requirements.txt
+    pip install -r requirements.txt || error_exit "Failed to install Python requirements"
     echo "Requirements installed successfully."
 else
     echo "No requirements.txt file found."
