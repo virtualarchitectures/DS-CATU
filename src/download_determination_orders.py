@@ -45,25 +45,6 @@ def get_search_items():
         except:
             dr_title = None
 
-            # TODO: get pdfs
-            pdf_elements = i.find_elements(
-                By.CLASS_NAME, "download-card.download-card--in-card "
-            )
-            print(f"Count of PDFs: {len(pdf_elements)}")
-        # get pdf links and types
-        try:
-            # pdf_link = i.find_element(By.CSS_SELECTOR, "a").get_attribute("href")
-            print(pdf_link)
-            pdf_link = pdf_elements[0]
-            pdf_type = pdf_elements[0].find_elements(
-                By.CLASS_NAME, "download-card__title "
-            )
-        except:
-            pdf_link = None
-            pdf_type = None
-
-        print(f"{pdf_type}: {pdf_link}")
-
         # get the card details
         text_elements = i.find_elements(By.CLASS_NAME, "card-list__text")
         # get the dispute resolution ID
@@ -85,9 +66,27 @@ def get_search_items():
         except:
             dr_subject = None
 
+        # get pdfs
+        download_cards = i.find_elements(
+            By.CLASS_NAME, "download-card.download-card--in-card"
+        )
+        print(f"PDF Count: {len(download_cards)}")
+
+        for card in download_cards:
+            # get pdf links and types
+            try:
+                pdf_link = card.get_attribute("href")
+                pdf_type = card.find_element(
+                    By.CLASS_NAME, "download-card__title"
+                ).get_attribute("innerText")
+            except:
+                pdf_link = None
+                pdf_type = None
+
+            print(f"{pdf_type}: {pdf_link}")
+
 
 def get_search_results(url):
-
     # print url
     print(f"Querying URL: {url}")
 
