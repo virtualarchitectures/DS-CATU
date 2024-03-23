@@ -12,6 +12,8 @@ output_folder = "data/downloaded_pdfs/"
 csv_output_file_path = "data/summary/case_metadata.csv"
 
 search_url = "https://www.rtb.ie/search-results/listing"
+# search_url = "https://www.rtb.ie/search-results/listing?collection=adjudication_orders"
+# search_url = "https://www.rtb.ie/search-results/listing?collection=tribunal_orders"
 
 # set options for running Selenium in headless mode
 chrome_options = Options()
@@ -82,12 +84,13 @@ def write_to_csv(data):
     with open(csv_output_file_path, "w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             "Title",
-            "ID",
             "Date",
             "Subject",
             "Determination",
+            "DR No.",
             "Determination_PDF",
             "Tribunal",
+            "TR No.",
             "Tribunal_PDF",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -114,17 +117,22 @@ def get_search_items():
         text_elements = i.find_elements(By.CLASS_NAME, "card-list__text")
         # get the dispute resolution ID
         try:
-            item_data["ID"] = text_elements[0].get_attribute("innerText")
+            item_data["DR No."] = text_elements[0].get_attribute("innerText")
         except:
-            item_data["ID"] = None
+            item_data["DR No."] = None
+        # get the tribunal resolution ID
+        try:
+            item_data["TR No."] = text_elements[1].get_attribute("innerText")
+        except:
+            item_data["TR No."] = None
         # get the date
         try:
-            item_data["Date"] = text_elements[1].get_attribute("innerText")
+            item_data["Date"] = text_elements[2].get_attribute("innerText")
         except:
             item_data["Date"] = None
         # get the subject
         try:
-            item_data["Subject"] = text_elements[2].get_attribute("innerText")
+            item_data["Subject"] = text_elements[3].get_attribute("innerText")
         except:
             item_data["Subject"] = None
 
@@ -148,14 +156,12 @@ def get_search_items():
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
                 item_data["Determination_PDF"] = pdf_link
-            else:
-                item_data["Determination"] = False
-                item_data["Determination_PDF"] = None
-
-            if "tribunal" in pdf_type.lower():
+            elif "tribunal" in pdf_type.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal_PDF"] = pdf_link
             else:
+                item_data["Determination"] = False
+                item_data["Determination_PDF"] = None
                 item_data["Tribunal"] = False
                 item_data["Tribunal_PDF"] = None
 
