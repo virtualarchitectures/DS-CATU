@@ -1,3 +1,4 @@
 pdf2image
 pytesseract
 selenium
+requests
