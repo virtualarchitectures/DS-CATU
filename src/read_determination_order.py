@@ -161,6 +161,8 @@ def pdf2text(file_path, output_folder, page_numbers=False):
         combined_text
     )
 
+    # TODO: Extract address
+
     # List determination keywords
     keywords_list = find_keywords(txt)
 
