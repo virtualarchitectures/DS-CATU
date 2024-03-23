@@ -104,7 +104,13 @@ def get_search_items():
     search_items = driver.find_elements(By.CLASS_NAME, "card-list--had-downloadable")
 
     for i in search_items:
+        # initialise variable defaults
         item_data = {}
+        item_data["Determination"] = False
+        item_data["Determination_PDF"] = None
+        item_data["Tribunal"] = False
+        item_data["Tribunal_PDF"] = None
+
         # get the card title
         try:
             item_data["Title"] = i.find_element(
@@ -115,42 +121,29 @@ def get_search_items():
 
         # get the card details
         text_elements = i.find_elements(By.CLASS_NAME, "card-list__text")
-        # get the dispute resolution ID
-        try:
-            item_data["DR No."] = text_elements[0].get_attribute("innerText")
-        except:
-            item_data["DR No."] = None
-        # get the tribunal resolution ID
-        try:
-            item_data["TR No."] = text_elements[1].get_attribute("innerText")
-        except:
-            item_data["TR No."] = None
-        # get the date
-        try:
-            item_data["Date"] = text_elements[2].get_attribute("innerText")
-        except:
-            item_data["Date"] = None
-        # get the subject
-        try:
-            item_data["Subject"] = text_elements[3].get_attribute("innerText")
-        except:
-            item_data["Subject"] = None
+        for element in text_elements:
+            heading = element.find_element(
+                By.XPATH, "./preceding-sibling::p[@class='card-list__heading']"
+            ).get_attribute("innerText")
+            value = element.get_attribute("innerText")
+            if heading == "DR No.":
+                item_data["DR No."] = value
+            elif heading == "TR No.":
+                item_data["TR No."] = value
+            elif heading == "Date":
+                item_data["Date"] = value
+            elif heading == "Subject":
+                item_data["Subject"] = value
 
         # get pdfs
         download_cards = i.find_elements(
             By.CLASS_NAME, "download-card.download-card--in-card"
         )
-
         for card in download_cards:
-            # get pdf links and types
-            try:
-                pdf_link = card.get_attribute("href")
-                pdf_type = card.find_element(
-                    By.CLASS_NAME, "download-card__title"
-                ).get_attribute("innerText")
-            except:
-                pdf_link = None
-                pdf_type = None
+            pdf_link = card.get_attribute("href")
+            pdf_type = card.find_element(
+                By.CLASS_NAME, "download-card__title"
+            ).get_attribute("innerText")
 
             # Extract determination and tribunal order information
             if "determination" in pdf_type.lower():
@@ -159,11 +152,6 @@ def get_search_items():
             elif "tribunal" in pdf_type.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal_PDF"] = pdf_link
-            else:
-                item_data["Determination"] = False
-                item_data["Determination_PDF"] = None
-                item_data["Tribunal"] = False
-                item_data["Tribunal_PDF"] = None
 
         # Append the data to the list
         data.append(item_data)
