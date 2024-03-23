@@ -7,18 +7,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-# get the current year
-current_year = datetime.datetime.now().year
-# generate the list of years from 2015
-years_list = [year for year in range(2015, current_year + 1)]
-
-# dictionary of order types
-order_types = {
-    "All": "adjudication_orders|tribunal_orders",
-    "Tribunal Orders": "tribunal_orders",
-    "Adjudication Orders": "adjudication_orders",
-}
-
 output_folder = "data/downloaded_pdfs/"
 
 csv_output_file_path = "data/summary/case_metadata.csv"
@@ -35,6 +23,18 @@ chrome_options.add_experimental_option("detach", True)
 # initialise the Chrome webdriver
 # driver = webdriver.Chrome()  # run with UI for debugging
 driver = webdriver.Chrome(options=chrome_options)  # run headless
+
+# get the current year
+current_year = datetime.datetime.now().year
+# generate the list of years from 2015
+years_list = [year for year in range(2015, current_year + 1)]
+
+# dictionary of order types
+order_types = {
+    "All": "adjudication_orders|tribunal_orders",
+    "Tribunal Orders": "tribunal_orders",
+    "Adjudication Orders": "adjudication_orders",
+}
 
 
 def download_pdf(pdf_link):
