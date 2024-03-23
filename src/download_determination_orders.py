@@ -86,8 +86,8 @@ def write_to_csv(data):
             "ID",
             "Date",
             "Subject",
-            "Adjudication",
-            "Adjudication_PDF",
+            "Determination",
+            "Determination_PDF",
             "Tribunal",
             "Tribunal_PDF",
         ]
@@ -145,13 +145,13 @@ def get_search_items():
                 pdf_link = None
                 pdf_type = None
 
-            # Extract Adjudication and Tribunal information
-            if "adjudication" in pdf_type.lower():
-                item_data["Adjudication"] = True
-                item_data["Adjudication_PDF"] = pdf_link
+            # Extract determination and tribunal order information
+            if "determination" in pdf_type.lower():
+                item_data["Determination"] = True
+                item_data["Determination_PDF"] = pdf_link
             else:
-                item_data["Adjudication"] = False
-                item_data["Adjudication_PDF"] = None
+                item_data["Determination"] = False
+                item_data["Determination_PDF"] = None
 
             if "tribunal" in pdf_type.lower():
                 item_data["Tribunal"] = True
