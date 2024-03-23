@@ -1,5 +1,8 @@
+import os
 import time
 import datetime
+import csv
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -13,9 +16,8 @@ years_list = [year for year in range(2015, current_year + 1)]
 order_types = {
     "All": "adjudication_orders|tribunal_orders",
     "Tribunal Orders": "tribunal_orders",
-    "Adjudcation Orders": "adjudication_orders",
+    "Adjudication Orders": "adjudication_orders",
 }
-
 
 # search url
 search_url = "https://www.rtb.ie/search-results/listing"
@@ -32,45 +34,103 @@ chrome_options.add_experimental_option("detach", True)
 driver = webdriver.Chrome(options=chrome_options)  # run headless
 
 
+def download_pdf(pdf_link):
+    if pdf_link:
+        # Create the downloaded_pdfs folder if it doesn't exist
+        if not os.path.exists("data/downloaded_pdfs"):
+            os.makedirs("data/downloaded_pdfs")
+
+        # Download the PDF to the specified folder
+        filename = pdf_link.split("/")[-1]
+        filepath = os.path.join("data/downloaded_pdfs", filename)
+
+        # Use requests to download the PDF
+        response = requests.get(pdf_link)
+        with open(filepath, "wb") as f:
+            f.write(response.content)
+
+        return filepath
+    else:
+        return None
+
+
+def clean_data(data):
+    cleaned_data = []
+    for item in data:
+        cleaned_item = {
+            key: (
+                # replace hidden characters
+                value.replace("\xa0", " ").replace("\u2019", "'")
+                if isinstance(value, str)
+                else value
+            )
+            for key, value in item.items()
+        }
+        cleaned_data.append(cleaned_item)
+    return cleaned_data
+
+
+def write_to_csv(data):
+    # Create the output folder if it doesn't exist
+    if not os.path.exists("data/output"):
+        os.makedirs("data/output")
+
+    # Clean the data
+    cleaned_data = clean_data(data)
+
+    # Write data to CSV file
+    with open("data/output/scrapped.csv", "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = [
+            "Title",
+            "ID",
+            "Date",
+            "Subject",
+            "PDF Type",
+            "PDF Link",
+            "PDF Path",
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(cleaned_data)
+
+
 def get_search_items():
+    data = []
     # get items on the current page
     search_items = driver.find_elements(By.CLASS_NAME, "card-list--had-downloadable")
 
     for i in search_items:
+        item_data = {}
         # get the card title
         try:
-            dr_title = i.find_element(By.CLASS_NAME, "card-list__title").get_attribute(
-                "innerText"
-            )
+            item_data["Title"] = i.find_element(
+                By.CLASS_NAME, "card-list__title"
+            ).get_attribute("innerText")
         except:
-            dr_title = None
+            item_data["Title"] = None
 
         # get the card details
         text_elements = i.find_elements(By.CLASS_NAME, "card-list__text")
         # get the dispute resolution ID
         try:
-            dr_id = text_elements[0].get_attribute("innerText")
-            print(dr_id)
+            item_data["ID"] = text_elements[0].get_attribute("innerText")
         except:
-            dr_id = None
+            item_data["ID"] = None
         # get the date
         try:
-            dr_date = text_elements[1].get_attribute("innerText")
-            print(dr_date)
+            item_data["Date"] = text_elements[1].get_attribute("innerText")
         except:
-            dr_date = None
+            item_data["Date"] = None
         # get the subject
         try:
-            dr_subject = text_elements[2].get_attribute("innerText")
-            print(dr_subject)
+            item_data["Subject"] = text_elements[2].get_attribute("innerText")
         except:
-            dr_subject = None
+            item_data["Subject"] = None
 
         # get pdfs
         download_cards = i.find_elements(
             By.CLASS_NAME, "download-card.download-card--in-card"
         )
-        print(f"PDF Count: {len(download_cards)}")
 
         for card in download_cards:
             # get pdf links and types
@@ -83,7 +143,17 @@ def get_search_items():
                 pdf_link = None
                 pdf_type = None
 
-            print(f"{pdf_type}: {pdf_link}")
+            item_data["PDF Type"] = pdf_type
+            item_data["PDF Link"] = pdf_link
+
+            # Download the PDF and get the file path
+            pdf_filepath = download_pdf(pdf_link)
+            item_data["PDF Path"] = pdf_filepath
+
+            # Append the data to the list
+            data.append(item_data.copy())
+
+    return data
 
 
 def get_search_results(url):
@@ -106,7 +176,10 @@ def get_search_results(url):
         pass
 
     # get the search items for the current page
-    get_search_items()
+    data = get_search_items()
+
+    # Write the data to CSV
+    write_to_csv(data)
 
     driver.close()
     print("Closed Chromium Driver.")
