@@ -1,3 +1,4 @@
+pandas
 pdf2image
 pytesseract
 selenium
