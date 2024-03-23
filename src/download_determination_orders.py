@@ -88,6 +88,10 @@ def write_to_csv(data):
             "PDF Type",
             "PDF Link",
             "PDF Path",
+            "Adjudication",
+            "Adjudication_PDF",
+            "Tribunal",
+            "Tribunal_PDF",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -149,6 +153,21 @@ def get_search_items():
             # Download the PDF and get the file path
             pdf_filepath = download_pdf(pdf_link)
             item_data["PDF Path"] = pdf_filepath
+
+            # Extract Adjudication and Tribunal information
+            if "adjudication" in pdf_type.lower():
+                item_data["Adjudication"] = True
+                item_data["Adjudication_PDF"] = pdf_link
+            else:
+                item_data["Adjudication"] = False
+                item_data["Adjudication_PDF"] = None
+
+            if "tribunal" in pdf_type.lower():
+                item_data["Tribunal"] = True
+                item_data["Tribunal_PDF"] = pdf_link
+            else:
+                item_data["Tribunal"] = False
+                item_data["Tribunal_PDF"] = None
 
             # Append the data to the list
             data.append(item_data.copy())
