@@ -65,6 +65,7 @@ def clean_data(data):
                 else value
             )
             for key, value in item.items()
+            if key not in ["PDF Type", "PDF Link", "PDF Path"]
         }
         cleaned_data.append(cleaned_item)
     return cleaned_data
@@ -85,9 +86,6 @@ def write_to_csv(data):
             "ID",
             "Date",
             "Subject",
-            "PDF Type",
-            "PDF Link",
-            "PDF Path",
             "Adjudication",
             "Adjudication_PDF",
             "Tribunal",
@@ -147,13 +145,6 @@ def get_search_items():
                 pdf_link = None
                 pdf_type = None
 
-            item_data["PDF Type"] = pdf_type
-            item_data["PDF Link"] = pdf_link
-
-            # Download the PDF and get the file path
-            pdf_filepath = download_pdf(pdf_link)
-            item_data["PDF Path"] = pdf_filepath
-
             # Extract Adjudication and Tribunal information
             if "adjudication" in pdf_type.lower():
                 item_data["Adjudication"] = True
@@ -169,8 +160,8 @@ def get_search_items():
                 item_data["Tribunal"] = False
                 item_data["Tribunal_PDF"] = None
 
-            # Append the data to the list
-            data.append(item_data.copy())
+        # Append the data to the list
+        data.append(item_data)
 
     return data
 
