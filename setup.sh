@@ -13,8 +13,9 @@ error_exit()
 
 # Create project folders if they don't exist
 echo "Creating project folders..."
-mkdir -p data/input
-mkdir -p data/output
+mkdir -p data/downloaded_pdfs
+mkdir -p data/converted_text
+mkdir -p data/summary
 mkdir -p reference
 mkdir -p chromedriver
 

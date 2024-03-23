@@ -4,12 +4,12 @@ import csv
 from pdf2image import convert_from_path
 import pytesseract
 
-input_folder = "data/input/"
-output_folder = "data/output/"
+input_folder = "data/downloaded_pdfs/"
+output_folder = "data/converted_text/"
 
 keywords_file = "reference/keywords.txt"
 
-csv_output_file_path = "data/output/case_details.csv"
+csv_output_file_path = "data/summary/case_details.csv"
 
 
 def read_keywords(file_path):

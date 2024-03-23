@@ -19,7 +19,10 @@ order_types = {
     "Adjudication Orders": "adjudication_orders",
 }
 
-# search url
+output_folder = "data/downloaded_pdfs/"
+
+csv_output_file_path = "data/summary/case_metadata.csv"
+
 search_url = "https://www.rtb.ie/search-results/listing"
 
 # set options for running Selenium in headless mode
@@ -37,12 +40,12 @@ driver = webdriver.Chrome(options=chrome_options)  # run headless
 def download_pdf(pdf_link):
     if pdf_link:
         # Create the downloaded_pdfs folder if it doesn't exist
-        if not os.path.exists("data/downloaded_pdfs"):
-            os.makedirs("data/downloaded_pdfs")
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
         # Download the PDF to the specified folder
         filename = pdf_link.split("/")[-1]
-        filepath = os.path.join("data/downloaded_pdfs", filename)
+        filepath = os.path.join(output_folder, filename)
 
         # Use requests to download the PDF
         response = requests.get(pdf_link)
@@ -72,15 +75,11 @@ def clean_data(data):
 
 
 def write_to_csv(data):
-    # Create the output folder if it doesn't exist
-    if not os.path.exists("data/output"):
-        os.makedirs("data/output")
-
     # Clean the data
     cleaned_data = clean_data(data)
 
     # Write data to CSV file
-    with open("data/output/scrapped.csv", "w", newline="", encoding="utf-8") as csvfile:
+    with open(csv_output_file_path, "w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             "Title",
             "ID",
