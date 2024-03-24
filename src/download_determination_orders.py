@@ -191,11 +191,13 @@ def get_search_items(driver):
         # Append the data to the list
         data.append(item_data)
 
+        # Incrementally write results to CSV
+        write_to_csv(data)
+
     return data
 
 
 def get_search_results():
-    results = []
     # inital page
     page_no = 0
 
@@ -212,6 +214,8 @@ def get_search_results():
     # initialise the Chrome webdriver
     # driver = webdriver.Chrome()  # run with UI for debugging
     driver = webdriver.Chrome(options=chrome_options)  # run headless
+
+    # TODO: Fix CSV generation
 
     while True:
         # generate search url from user input
@@ -237,9 +241,6 @@ def get_search_results():
 
         # Get the search items for the current page
         data = get_search_items(driver)
-
-        # Incrementally write results to CSV
-        write_to_csv(results)
 
         # Increment the page number by 10 for the next page
         page_no += 10
