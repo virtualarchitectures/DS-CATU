@@ -197,6 +197,8 @@ def get_search_results(url):
     # print url
     print(f"Querying URL: {url}")
 
+    # TODO: Loop through pages by updating page number
+
     # open the web page
     driver.get(url)
 
