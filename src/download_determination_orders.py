@@ -11,9 +11,24 @@ output_folder = "data/downloaded_pdfs/"
 
 csv_output_file_path = "data/summary/case_metadata.csv"
 
-search_url = "https://www.rtb.ie/search-results/listing/P00?collection=adjudication_orders|tribunal_orders"
-# search_url = "https://www.rtb.ie/search-results/listing/P00?collection=adjudication_orders"
-# search_url = "https://www.rtb.ie/search-results/listing/P00?collection=tribunal_orders"
+# Prompt the user to select the search option
+order_types = {
+    "All": "adjudication_orders|tribunal_orders",
+    "Tribunal": "tribunal_orders",
+    "Adjudication": "adjudication_orders",
+}
+print("Select the dispute outcome type:")
+for key in order_types:
+    print(f"{key}")
+selected_option = input("Enter your choice and press return: ")
+
+# Validate user input
+if selected_option not in order_types:
+    print("Invalid option selected.")
+    exit()
+
+# Generate the search URL based on the selected option
+search_url = f"https://www.rtb.ie/search-results/listing/P00?collection={order_types[selected_option]}"
 
 # set options for running Selenium in headless mode
 chrome_options = Options()
@@ -25,6 +40,11 @@ chrome_options.add_experimental_option("detach", True)
 # initialise the Chrome webdriver
 # driver = webdriver.Chrome()  # run with UI for debugging
 driver = webdriver.Chrome(options=chrome_options)  # run headless
+
+# get the current year
+current_year = datetime.datetime.now().year
+# generate the list of years from 2015
+years_list = [year for year in range(2015, current_year + 1)]
 
 # get the current year
 current_year = datetime.datetime.now().year
