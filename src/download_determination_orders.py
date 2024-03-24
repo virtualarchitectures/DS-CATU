@@ -11,44 +11,53 @@ output_folder = "data/downloaded_pdfs/"
 
 csv_output_file_path = "data/summary/case_metadata.csv"
 
-# Prompt the user to select the search option
-order_types = {
-    "All": "adjudication_orders|tribunal_orders",
-    "Tribunal": "tribunal_orders",
-    "Adjudication": "adjudication_orders",
-}
-print("Select the dispute outcome type:")
-for key in order_types:
-    print(f"{key}")
-selected_option = input("Enter your choice and press return: ")
 
-# Validate user input
-if selected_option not in order_types:
-    print("Invalid option selected.")
-    exit()
+def generate_search_url():
+    # get the current year for year list
+    current_year = datetime.datetime.now().year
+    # generate the list of years from 2015
+    years_list = [year for year in range(2015, current_year + 1)]
 
-# get the current year for year list
-current_year = datetime.datetime.now().year
-# generate the list of years from 2015
-years_list = [year for year in range(2015, current_year + 1)]
+    # Prompt the user to select a time period
+    print("Select a time period or enter 'All' for all years:")
+    for year in years_list:
+        print(year)
+    selected_year = input("Enter your choice and press return: ")
 
-# Prompt the user to select a time period
-print("Select a time period or enter 'All' for all years:")
-for year in years_list:
-    print(year)
-selected_year = input("Enter your choice and press return: ")
+    # Validate user input for time period
+    if selected_year != "All" and int(selected_year) not in years_list:
+        print("Invalid time period selected.")
+        exit()
 
-# Validate user input for time period
-if selected_year != "All" and int(selected_year) not in years_list:
-    print("Invalid time period selected.")
-    exit()
+    # reference list for user input options
+    order_types = {
+        "All": "adjudication_orders|tribunal_orders",
+        "Tribunal": "tribunal_orders",
+        "Adjudication": "adjudication_orders",
+    }
 
-# Generate the search URL based on the selected option and time period
-if selected_year == "All":
-    search_url = f"https://www.rtb.ie/search-results/listing/P00?collection={order_types[selected_option]}"
-else:
-    search_url = f"https://www.rtb.ie/search-results/listing/P00?year={selected_year}&collection={order_types[selected_option]}"
+    # Prompt the user to select the dispute outcome type
+    print("Select the dispute outcome type:")
+    for key in order_types:
+        print(f"{key}")
+    selected_option = input("Enter your choice and press return: ")
 
+    # Validate user input
+    if selected_option not in order_types:
+        print("Invalid option selected.")
+        exit()
+
+    # Generate the search URL based on the selected option and time period
+    if selected_year == "All":
+        search_url = f"https://www.rtb.ie/search-results/listing/P00?collection={order_types[selected_option]}"
+    else:
+        search_url = f"https://www.rtb.ie/search-results/listing/P00?year={selected_year}&collection={order_types[selected_option]}"
+
+    return search_url
+
+
+# generate search url from user input
+search_url = generate_search_url()
 
 # set options for running Selenium
 chrome_options = Options()
