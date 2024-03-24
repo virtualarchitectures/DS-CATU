@@ -13,19 +13,22 @@ csv_output_file_path = "data/summary/case_metadata.csv"
 
 
 def generate_search_url():
+    # first year of available data
+    start_year = 2015
     # get the current year for year list
     current_year = datetime.datetime.now().year
-    # generate the list of years from 2015
-    years_list = [year for year in range(2015, current_year + 1)]
 
-    # Prompt the user to select a time period
-    print("Select a time period or enter 'All' for all years:")
-    for year in years_list:
-        print(year)
+    print(
+        f"Select a year from {start_year}-{current_year} or enter 'All' for all years."
+    )
     selected_year = input("Enter your choice and press return: ")
 
     # Validate user input for time period
-    if selected_year != "All" and int(selected_year) not in years_list:
+    if selected_year != "All" and (
+        not selected_year.isdigit()
+        or int(selected_year) < start_year
+        or int(selected_year) > current_year
+    ):
         print("Invalid time period selected.")
         exit()
 
@@ -37,9 +40,8 @@ def generate_search_url():
     }
 
     # Prompt the user to select the dispute outcome type
-    print("Select the dispute outcome type:")
-    for key in order_types:
-        print(f"{key}")
+    options_text = " | ".join(order_types.keys())
+    print(f"Select the dispute outcome type ({options_text}).")
     selected_option = input("Enter your choice and press return: ")
 
     # Validate user input
