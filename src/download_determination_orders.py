@@ -131,6 +131,7 @@ def write_to_csv(data):
             "Tribunal",
             "TR No.",
             "Tribunal_PDF",
+            "Comments",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()

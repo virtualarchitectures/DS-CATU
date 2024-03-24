@@ -204,7 +204,6 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
                 "Tenant Role",
                 "Landlord Name",
                 "Landlord Role",
-                "Comments",
             ]
         )
 
