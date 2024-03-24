@@ -27,10 +27,30 @@ if selected_option not in order_types:
     print("Invalid option selected.")
     exit()
 
-# Generate the search URL based on the selected option
-search_url = f"https://www.rtb.ie/search-results/listing/P00?collection={order_types[selected_option]}"
+# get the current year for year list
+current_year = datetime.datetime.now().year
+# generate the list of years from 2015
+years_list = [year for year in range(2015, current_year + 1)]
 
-# set options for running Selenium in headless mode
+# Prompt the user to select a time period
+print("Select a time period or enter 'All' for all years:")
+for year in years_list:
+    print(year)
+selected_year = input("Enter your choice and press return: ")
+
+# Validate user input for time period
+if selected_year != "All" and int(selected_year) not in years_list:
+    print("Invalid time period selected.")
+    exit()
+
+# Generate the search URL based on the selected option and time period
+if selected_year == "All":
+    search_url = f"https://www.rtb.ie/search-results/listing/P00?collection={order_types[selected_option]}"
+else:
+    search_url = f"https://www.rtb.ie/search-results/listing/P00?year={selected_year}&collection={order_types[selected_option]}"
+
+
+# set options for running Selenium
 chrome_options = Options()
 # chrome_options.add_argument("--headless")
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -40,11 +60,6 @@ chrome_options.add_experimental_option("detach", True)
 # initialise the Chrome webdriver
 # driver = webdriver.Chrome()  # run with UI for debugging
 driver = webdriver.Chrome(options=chrome_options)  # run headless
-
-# get the current year
-current_year = datetime.datetime.now().year
-# generate the list of years from 2015
-years_list = [year for year in range(2015, current_year + 1)]
 
 
 def download_pdf(pdf_link):
