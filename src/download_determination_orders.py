@@ -191,13 +191,11 @@ def get_search_items(driver):
         # Append the data to the list
         data.append(item_data)
 
-        # Incrementally write results to CSV
-        write_to_csv(data)
-
     return data
 
 
 def get_search_results():
+    results = []
     # inital page
     page_no = 0
 
@@ -241,6 +239,11 @@ def get_search_results():
 
         # Get the search items for the current page
         data = get_search_items(driver)
+        # Add the data to the results
+        results.extend(data)
+
+        # Incrementally write results to CSV
+        write_to_csv(results)
 
         # Increment the page number by 10 for the next page
         page_no += 10
