@@ -78,6 +78,7 @@ def download_pdf(pdf_link):
             or "application/pdf" not in response.headers.get("content-type", "")
         ):
             print(f"Error downloading PDF from {pdf_link}. Invalid PDF link.")
+            # TODO: Write message to comments column
             return None
 
         # Create the downloaded_pdfs folder if it doesn't exist
