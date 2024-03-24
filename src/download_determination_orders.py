@@ -184,7 +184,9 @@ def get_search_items(driver):
                 item_data["Tribunal"] = True
                 item_data["Tribunal_PDF"] = pdf_link
 
-            # TODO: Restore PDF downloading
+            # Download pdf
+            print(f"Downloading PDF: {pdf_link}")
+            download_pdf(pdf_link)
 
         # Append the data to the list
         data.append(item_data)
