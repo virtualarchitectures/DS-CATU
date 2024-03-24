@@ -71,6 +71,15 @@ def generate_search_url(page_no, selected_year, order_type):
 
 def download_pdf(pdf_link):
     if pdf_link:
+        # Check if the PDF link returns a valid response
+        response = requests.head(pdf_link)
+        if (
+            response.status_code != 200
+            or "application/pdf" not in response.headers.get("content-type", "")
+        ):
+            print(f"Error downloading PDF from {pdf_link}. Invalid PDF link.")
+            return None
+
         # Create the downloaded_pdfs folder if it doesn't exist
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
@@ -212,8 +221,6 @@ def get_search_results():
     # initialise the Chrome webdriver
     # driver = webdriver.Chrome()  # run with UI for debugging
     driver = webdriver.Chrome(options=chrome_options)  # run headless
-
-    # TODO: Fix CSV generation
 
     while True:
         # generate search url from user input
