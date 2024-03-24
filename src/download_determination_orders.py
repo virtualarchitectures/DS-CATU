@@ -11,9 +11,9 @@ output_folder = "data/downloaded_pdfs/"
 
 csv_output_file_path = "data/summary/case_metadata.csv"
 
-search_url = "https://www.rtb.ie/search-results/listing"
-# search_url = "https://www.rtb.ie/search-results/listing?collection=adjudication_orders"
-# search_url = "https://www.rtb.ie/search-results/listing?collection=tribunal_orders"
+search_url = "https://www.rtb.ie/search-results/listing/P00?collection=adjudication_orders|tribunal_orders"
+# search_url = "https://www.rtb.ie/search-results/listing/P00?collection=adjudication_orders"
+# search_url = "https://www.rtb.ie/search-results/listing/P00?collection=tribunal_orders"
 
 # set options for running Selenium in headless mode
 chrome_options = Options()
