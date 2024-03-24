@@ -12,7 +12,7 @@ output_folder = "data/downloaded_pdfs/"
 csv_output_file_path = "data/summary/case_metadata.csv"
 
 
-def generate_search_url():
+def get_user_preferences():
     # first year of available data
     start_year = 2015
     # get the current year for year list
@@ -49,28 +49,24 @@ def generate_search_url():
         print("Invalid option selected.")
         exit()
 
+    order_type = order_types[selected_option]
+
+    return selected_year, order_type
+
+
+def generate_search_url(page_no, selected_year, order_type):
+    # convert string to int
+    page = str(page_no)
+
     # Generate the search URL based on the selected option and time period
     if selected_year == "All":
-        search_url = f"https://www.rtb.ie/search-results/listing/P00?collection={order_types[selected_option]}"
+        search_url = (
+            f"https://www.rtb.ie/search-results/listing/P{page}?collection={order_type}"
+        )
     else:
-        search_url = f"https://www.rtb.ie/search-results/listing/P00?year={selected_year}&collection={order_types[selected_option]}"
+        search_url = f"https://www.rtb.ie/search-results/listing/P{page}?year={selected_year}&collection={order_type}"
 
     return search_url
-
-
-# generate search url from user input
-search_url = generate_search_url()
-
-# set options for running Selenium
-chrome_options = Options()
-# chrome_options.add_argument("--headless")
-chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-chrome_options.add_experimental_option("useAutomationExtension", False)
-chrome_options.add_experimental_option("detach", True)
-
-# initialise the Chrome webdriver
-# driver = webdriver.Chrome()  # run with UI for debugging
-driver = webdriver.Chrome(options=chrome_options)  # run headless
 
 
 def download_pdf(pdf_link):
@@ -132,8 +128,9 @@ def write_to_csv(data):
         writer.writerows(cleaned_data)
 
 
-def get_search_items():
+def get_search_items(driver):
     data = []
+    print("Extracting data.")
     # get items on the current page
     search_items = driver.find_elements(By.CLASS_NAME, "card-list--had-downloadable")
 
@@ -187,41 +184,71 @@ def get_search_items():
                 item_data["Tribunal"] = True
                 item_data["Tribunal_PDF"] = pdf_link
 
+            # TODO: Restore PDF downloading
+
         # Append the data to the list
         data.append(item_data)
 
     return data
 
 
-def get_search_results(url):
-    # print url
-    print(f"Querying URL: {url}")
+def get_search_results():
+    # inital page
+    page_no = 0
 
-    # TODO: Loop through pages by updating page number
+    # get user input
+    selected_year, order_type = get_user_preferences()
 
-    # open the web page
-    driver.get(url)
+    # set options for running Selenium
+    chrome_options = Options()
+    # chrome_options.add_argument("--headless")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option("useAutomationExtension", False)
+    chrome_options.add_experimental_option("detach", True)
 
-    # wait for cookies notification
-    time.sleep(2)
+    # initialise the Chrome webdriver
+    # driver = webdriver.Chrome()  # run with UI for debugging
+    driver = webdriver.Chrome(options=chrome_options)  # run headless
 
-    try:
-        # click on the privacy popup button
-        privacy_button = driver.find_element(
-            By.ID, "onetrust-accept-btn-handler"
-        ).click()
+    # TODO: Fix CSV generation
+
+    while True:
+        # generate search url from user input
+        url = generate_search_url(page_no, selected_year, order_type)
+
+        # print url
+        print(f"Querying URL: {url}")
+
+        # open the web page
+        driver.get(url)
+
+        # wait for cookies notification
         time.sleep(2)
-    except:
-        pass
 
-    # get the search items for the current page
-    data = get_search_items()
+        try:
+            # click on the privacy popup button
+            privacy_button = driver.find_element(
+                By.ID, "onetrust-accept-btn-handler"
+            ).click()
+            time.sleep(2)
+        except:
+            pass
 
-    # Write the data to CSV
-    write_to_csv(data)
+        # get the search items for the current page
+        data = get_search_items(driver)
+
+        # Write the data to CSV
+        write_to_csv(data)
+
+        # Increment the page number by 10 for the next page
+        page_no += 10
+
+        # Check if there are more pages to process
+        if not data:
+            break
 
     driver.close()
     print("Closed Chromium Driver.")
 
 
-get_search_results(search_url)
+get_search_results()
