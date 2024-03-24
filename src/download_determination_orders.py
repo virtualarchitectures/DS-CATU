@@ -46,18 +46,6 @@ current_year = datetime.datetime.now().year
 # generate the list of years from 2015
 years_list = [year for year in range(2015, current_year + 1)]
 
-# get the current year
-current_year = datetime.datetime.now().year
-# generate the list of years from 2015
-years_list = [year for year in range(2015, current_year + 1)]
-
-# dictionary of order types
-order_types = {
-    "All": "adjudication_orders|tribunal_orders",
-    "Tribunal Orders": "tribunal_orders",
-    "Adjudication Orders": "adjudication_orders",
-}
-
 
 def download_pdf(pdf_link):
     if pdf_link:
