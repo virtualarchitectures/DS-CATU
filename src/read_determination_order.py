@@ -73,15 +73,11 @@ def extract_names(text):
     landlord_role = None
 
     # Define two alternate regular expression patterns
-    pattern1 = (
-        r"In the matter of (.+?) \[Applicant Tenant\] and (.+?) \[Respondent Landlord\]"
-    )
-    pattern2 = (
-        r"In the matter of (.+?) \[Applicant Landlord\] and (.+?) \[Respondent Tenant\]"
-    )
+    pattern1 = r"In the matter of (.+?) \[Applicant Tenant[s]?\] and (.+?) \[Respondent Landlord[s]?\]"
+    pattern2 = r"In the matter of (.+?) \[Applicant Landlord[s]?\] and (.+?) \[Respondent Tenant[s]?\]"
 
     # Try to find a match using the first pattern
-    match1 = re.search(pattern1, text)
+    match1 = re.search(pattern1, text, re.IGNORECASE)
 
     # If the first pattern doesn't match, try the second pattern
     if match1:
@@ -93,7 +89,7 @@ def extract_names(text):
         print(f"Tenant: {tenant_name} / {tenant_role}")
         print(f"Landlord: {landlord_name} / {landlord_role}")
     else:
-        match2 = re.search(pattern2, text)
+        match2 = re.search(pattern2, text, re.IGNORECASE)
         if match2:
             # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
             landlord_name = match2.group(1)
@@ -221,9 +217,9 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
                 "Output Filename",
                 "Keywords",
                 "Address",
-                "Tenant Name",
+                "Tenant Name(s)",
                 "Tenant Role",
-                "Landlord Name",
+                "Landlord Name(s)",
                 "Landlord Role",
             ]
         )
