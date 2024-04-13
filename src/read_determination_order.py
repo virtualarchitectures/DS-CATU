@@ -4,8 +4,11 @@ import csv
 from pdf2image import convert_from_path
 import pytesseract
 
-input_folder = "data/downloaded_pdfs/"
-output_folder = "data/converted_text/"
+# input_folder = "data/downloaded_pdfs/"
+# output_folder = "data/converted_text/"
+
+input_folder = "data/input/"
+output_folder = "data/output/"
 
 keywords_file = "reference/keywords.txt"
 
@@ -105,6 +108,21 @@ def extract_names(text):
     return tenant_name, tenant_role, landlord_name, landlord_role
 
 
+def extract_addresses(text):
+    addresses = []
+
+    # TODO: Improve address matching regex
+    # Regular expression pattern to match addresses
+    address_pattern = r"the tenancy of the dwelling at ([\w\d\s,]+)"
+
+    # Find all matches of addresses in the text
+    addresses = re.findall(address_pattern, text)
+
+    print(f"Addresses: {addresses}")
+
+    return addresses
+
+
 def find_keywords(text):
     matches = []
 
@@ -161,8 +179,10 @@ def pdf2text(file_path, output_folder, page_numbers=False):
         combined_text
     )
 
-    # TODO: Extract address
+    # Extract addresses
+    addresses_list = extract_addresses(combined_text)
 
+    # TODO: Should this be using combined_text?
     # List determination keywords
     keywords_list = find_keywords(txt)
 
@@ -180,6 +200,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
                 page_count,
                 os.path.basename(output_file_path),
                 keywords_list,
+                addresses_list,
                 tenant_name,
                 tenant_role,
                 landlord_name,
@@ -200,6 +221,7 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
                 "Page Count",
                 "Output Filename",
                 "Keywords",
+                "Addresses",
                 "Tenant Name",
                 "Tenant Role",
                 "Landlord Name",
