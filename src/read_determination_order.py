@@ -111,12 +111,11 @@ def extract_names(text):
 def extract_addresses(text):
     addresses = []
 
-    # TODO: Improve address matching regex
     # Regular expression pattern to match addresses
-    address_pattern = r"the tenancy of the dwelling at ([\w\d\s,]+)"
+    address_pattern = r"(?:the tenancy|occupation) of the dwelling at ([\w\d\s,]+)"
 
-    # Find all matches of addresses in the text
-    addresses = re.findall(address_pattern, text)
+    # Find all matches of addresses in the text (case-insensitive)
+    addresses = re.findall(address_pattern, text, re.IGNORECASE)
 
     print(f"Addresses: {addresses}")
 
