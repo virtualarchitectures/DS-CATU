@@ -72,9 +72,11 @@ def extract_names(text):
     tenant_role = None
     landlord_role = None
 
-    # Define two alternate regular expression patterns
+    # Define alternate regular expression patterns
     pattern1 = r"In the matter of (.+?) \[Applicant Tenant[s]?\] and (.+?) \[Respondent Landlord[s]?\]"
     pattern2 = r"In the matter of (.+?) \[Applicant Landlord[s]?\] and (.+?) \[Respondent Tenant[s]?\]"
+    pattern3 = r"In the matter of (.+?) \[Applicant/Respondent Tenant[s]?\] and (.+?) \[Respondent/Applicant Landlord[s]?\]"
+    pattern4 = r"In the matter of (.+?) \[Applicant/Respondent Landlord[s]?\] and (.+?) \[Respondent/Applicant Tenant[s]?\]"
 
     # Try to find a match using the first pattern
     match1 = re.search(pattern1, text, re.IGNORECASE)
@@ -94,12 +96,33 @@ def extract_names(text):
             # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
             landlord_name = match2.group(1)
             tenant_name = match2.group(2)
-            landlord_role = "Applicant"
             tenant_role = "Respondent"
+            landlord_role = "Applicant"
             print(f"Tenant: {tenant_name} / {tenant_role}")
             print(f"Landlord: {landlord_name} / {landlord_role}")
         else:
-            print("Unable to identify applicant and respondent!")
+            match3 = re.search(pattern3, text, re.IGNORECASE)
+            if match3:
+                # Extract the names for 'Applicant/Respondent Tenant' and 'Respondent/Applicant Landlord' using the third pattern
+                tenant_name = match3.group(1)
+                landlord_name = match3.group(2)
+                tenant_role = "Applicant/Respondent"
+                landlord_role = "Respondent/Applicant"
+                print(f"Tenant: {tenant_name} / {tenant_role}")
+                print(f"Landlord: {landlord_name} / {landlord_role}")
+            else:
+                match4 = re.search(pattern4, text, re.IGNORECASE)
+                if match4:
+                    # Extract the names for 'Respondent/Applicant Landlord' and 'Applicant/Respondent Tenant' using the fourth pattern
+                    landlord_name = match4.group(1)
+                    tenant_name = match4.group(2)
+                    tenant_role = "Respondent/Applicant"
+                    landlord_role = "Applicant/Respondent"
+
+                    print(f"Tenant: {tenant_name} / {tenant_role}")
+                    print(f"Landlord: {landlord_name} / {landlord_role}")
+                else:
+                    print("Unable to identify applicant and respondent!")
 
     return tenant_name, tenant_role, landlord_name, landlord_role
 
