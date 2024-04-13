@@ -108,18 +108,18 @@ def extract_names(text):
     return tenant_name, tenant_role, landlord_name, landlord_role
 
 
-def extract_addresses(text):
+def extract_address(text):
     addresses = []
 
     # Regular expression pattern to match addresses
-    address_pattern = r"(?:the tenancy|occupation) of the dwelling at ([\w\d\s,]+)"
+    address_pattern = r"(?:tenancy|occupation) of the dwelling at (.*?)(?: is| as|\n)"
 
-    # Find all matches of addresses in the text (case-insensitive)
-    addresses = re.findall(address_pattern, text, re.IGNORECASE)
+    # Find match for address in the text (case-insensitive)
+    match = re.search(address_pattern, text, re.IGNORECASE)
+    address = match.group(1)
+    print(f"Address: {address.group(1)}")
 
-    print(f"Addresses: {addresses}")
-
-    return addresses
+    return address
 
 
 def find_keywords(text):
@@ -179,7 +179,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     )
 
     # Extract addresses
-    addresses_list = extract_addresses(combined_text)
+    address = extract_address(combined_text)
 
     # TODO: Should this be using combined_text?
     # List determination keywords
@@ -199,7 +199,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
                 page_count,
                 os.path.basename(output_file_path),
                 keywords_list,
-                addresses_list,
+                address,
                 tenant_name,
                 tenant_role,
                 landlord_name,
@@ -220,7 +220,7 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
                 "Page Count",
                 "Output Filename",
                 "Keywords",
-                "Addresses",
+                "Address",
                 "Tenant Name",
                 "Tenant Role",
                 "Landlord Name",
