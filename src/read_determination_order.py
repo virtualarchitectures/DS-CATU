@@ -117,7 +117,7 @@ def extract_address(text):
     # Find match for address in the text (case-insensitive)
     match = re.search(address_pattern, text, re.IGNORECASE)
     address = match.group(1)
-    print(f"Address: {address.group(1)}")
+    print(f"Address: {address}")
 
     return address
 
