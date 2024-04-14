@@ -223,9 +223,8 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     # Extract addresses
     address = extract_address(combined_text)
 
-    # TODO: Should this be using combined_text?
     # List determination keywords
-    keywords_list = find_keywords(txt)
+    keywords_list = find_keywords(combined_text)
 
     # Write combined text to a file
     output_file_path = os.path.join(output_folder, f"{base_name}.txt")
