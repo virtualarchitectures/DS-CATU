@@ -1,14 +1,15 @@
 import os
 import re
+import string
 import csv
 from pdf2image import convert_from_path
 import pytesseract
 
-# input_folder = "data/downloaded_pdfs/"
-# output_folder = "data/converted_text/"
+input_folder = "data/downloaded_pdfs/"
+output_folder = "data/converted_text/"
 
-input_folder = "data/input/"
-output_folder = "data/output/"
+# input_folder = "data/input/"
+# output_folder = "data/output/"
 
 keywords_file = "reference/keywords.txt"
 
@@ -77,9 +78,16 @@ def extract_names(text):
     pattern2 = r"In the matter of (.+?) \[Applicant Landlord[s]?\] and (.+?) \[Respondent Tenant[s]?\]"
     pattern3 = r"In the matter of (.+?) \[Applicant/Respondent Tenant[s]?\] and (.+?) \[Respondent/Applicant Landlord[s]?\]"
     pattern4 = r"In the matter of (.+?) \[Applicant/Respondent Landlord[s]?\] and (.+?) \[Respondent/Applicant Tenant[s]?\]"
+    pattern5 = r"In the matter of (.+?) \[Tenant[s]?\] and (.+?) \[Landlord[s]?\]"
+    pattern6 = r"In the matter of (.+?) \[Landlord[s]?\] and (.+?) \[Tenant[s]?\]"
 
-    pattern5 = r"In the matter of (.+?) \(Tenant[s]?\) and (.+?) \(Landlord[s]?\)"
-    pattern6 = r"In the matter of (.+?) \(Landlord[s]?\) and (.+?) \(Tenant[s]?\)"
+    # Define alternate regular expression patterns
+    # pattern1 = r"In the matter of (.+?) \[Applicant Tenant[s]?\]|\(Applicant Tenant[s]?\) and (.+?) \[Respondent Landlord[s]?\]|\(Respondent Landlord[s]?\)"
+    # pattern2 = r"In the matter of (.+?) \[Applicant Landlord[s]?\]|\(Applicant Landlord[s]?\) and (.+?) \[Respondent Tenants[s]?\]|\(Respondent Tenants[s]?\)"
+    # pattern3 = r"In the matter of (.+?) \[Applicant/Respondent Tenant[s]?\]|\(Applicant/Respondent Tenant[s]?\) and (.+?) \[Respondent/Applicant Landlord[s]?\]|\(Respondent/Applicant Landlord[s]?\)"
+    # pattern4 = r"In the matter of (.+?) \[Applicant/Respondent Landlord[s]?\]|\(Applicant/Respondent Landlord[s]?\) and (.+?) \[Respondent/Applicant Tenant[s]?\]|\(Respondent/Applicant Tenant[s]?\)"
+    # pattern5 = r"In the matter of (.+?) \[Tenant[s]?\]|\(Tenant[s]?\) and (.+?) \[Landlord[s]?\]|\(Landlord[s]?\)"
+    # pattern6 = r"In the matter of (.+?) \[Landlord[s]?\]|\(Landlord[s]?\) and (.+?) \[Tenant[s]?\]|\(Tenant[s]?\)"
 
     # Try to find a match using the first pattern
     match1 = re.search(pattern1, text, re.IGNORECASE)
@@ -91,8 +99,6 @@ def extract_names(text):
         landlord_name = match1.group(2)
         tenant_role = "Applicant"
         landlord_role = "Respondent"
-        print(f"Tenant: {tenant_name} / {tenant_role}")
-        print(f"Landlord: {landlord_name} / {landlord_role}")
     else:
         match2 = re.search(pattern2, text, re.IGNORECASE)
         if match2:
@@ -101,8 +107,6 @@ def extract_names(text):
             tenant_name = match2.group(2)
             tenant_role = "Respondent"
             landlord_role = "Applicant"
-            print(f"Tenant: {tenant_name} / {tenant_role}")
-            print(f"Landlord: {landlord_name} / {landlord_role}")
         else:
             match3 = re.search(pattern3, text, re.IGNORECASE)
             if match3:
@@ -148,12 +152,22 @@ def extract_address(text):
     addresses = []
 
     # Regular expression pattern to match addresses
-    address_pattern = r"(?:tenancy|occupation) of the dwelling at (.*?)(?: is| as|\n)"
+    address_pattern = (
+        r"(?:tenancy|occupation) of the dwelling at (.*?)(?: is| as| has| also|\n)"
+    )
 
     # Find match for address in the text (case-insensitive)
     match = re.search(address_pattern, text, re.IGNORECASE)
-    address = match.group(1)
-    print(f"Address: {address}")
+    if match:
+        address = match.group(1)
+        # Remove leading and trailing whitespace
+        address = address.strip()
+        # Remove punctuation at the end
+        address = address.rstrip(string.punctuation)
+        print(f"Address: {address}")
+    else:
+        address = None
+        print("Unable to identify address!")
 
     return address
 
