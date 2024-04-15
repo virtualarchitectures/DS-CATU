@@ -49,9 +49,9 @@ def get_user_preferences():
         print("Invalid option selected.")
         exit()
 
-    order_type = order_types[selected_option]
+    selected_type = order_types[selected_option]
 
-    return selected_year, order_type
+    return selected_year, selected_type
 
 
 def generate_search_url(page_no, selected_year, order_type):
@@ -211,7 +211,7 @@ def get_search_results():
     page_no = 0
 
     # get user input
-    selected_year, order_type = get_user_preferences()
+    selected_year, selected_type = get_user_preferences()
 
     # set options for running Selenium
     chrome_options = Options()
@@ -224,52 +224,60 @@ def get_search_results():
     # driver = webdriver.Chrome()  # run with UI for debugging
     driver = webdriver.Chrome(options=chrome_options)  # run headless
 
-    # Disaggregate searches for all years
+    # Disaggregate searches for 'All' years
     if selected_year == "All":
         year_list = [year for year in range(start_year, current_year + 1)]
     else:
         year_list = [selected_year]
 
+    # Disaggregate searches for 'All' order types
+    if selected_type == "adjudication_orders|tribunal_orders":
+        order_list = ["adjudication_orders", "tribunal_orders"]
+    else:
+        order_list = [selected_type]
+
     for year in year_list:
         selected_year = year
 
-        while True:
-            # generate search url from user input
-            url = generate_search_url(page_no, selected_year, order_type)
+        for order_type in order_list:
 
-            # print url
-            print(f"Querying URL: {url}")
+            while True:
+                # generate search url from user input
+                url = generate_search_url(page_no, selected_year, order_type)
 
-            # open the web page
-            driver.get(url)
+                # print url
+                print(f"Querying URL: {url}")
 
-            # wait for cookies notification
-            time.sleep(2)
+                # open the web page
+                driver.get(url)
 
-            try:
-                # click on the privacy popup button
-                privacy_button = driver.find_element(
-                    By.ID, "onetrust-accept-btn-handler"
-                ).click()
+                # wait for cookies notification
                 time.sleep(2)
-            except:
-                pass
 
-            # Get the search items for the current page
-            data = get_search_items(driver)
-            # Add the data to the results
-            results.extend(data)
+                try:
+                    # click on the privacy popup button
+                    privacy_button = driver.find_element(
+                        By.ID, "onetrust-accept-btn-handler"
+                    ).click()
+                    time.sleep(2)
+                except:
+                    pass
 
-            # Incrementally write results to CSV
-            write_to_csv(results)
+                # Get the search items for the current page
+                data = get_search_items(driver)
+                # Add the data to the results
+                results.extend(data)
 
-            # Increment the page number by 10 for the next page
-            page_no += 10
+                # Incrementally write results to CSV
+                write_to_csv(results)
 
-            # Check if there are more pages to process
-            if not data:
-                break
+                # Increment the page number by 10 for the next page
+                page_no += 10
 
+                # Check if there are more pages to process
+                if not data:
+                    break
+    # TODO: Deduplicate output where adjudications include tribunal results.
     driver.close()
     print("Closed Chromium Driver.")
 
