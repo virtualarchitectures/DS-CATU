@@ -11,13 +11,13 @@ output_folder = "data/downloaded_pdfs/"
 
 csv_output_file_path = "data/summary/case_metadata.csv"
 
+# first year of available data
+start_year = 2015
+# get the current year for year list
+current_year = datetime.datetime.now().year
+
 
 def get_user_preferences():
-    # first year of available data
-    start_year = 2015
-    # get the current year for year list
-    current_year = datetime.datetime.now().year
-
     print(
         f"Select a year from {start_year}-{current_year} or enter 'All' for all years."
     )
@@ -224,42 +224,51 @@ def get_search_results():
     # driver = webdriver.Chrome()  # run with UI for debugging
     driver = webdriver.Chrome(options=chrome_options)  # run headless
 
-    while True:
-        # generate search url from user input
-        url = generate_search_url(page_no, selected_year, order_type)
+    # Disaggregate searches for all years
+    if selected_year == "All":
+        year_list = [year for year in range(start_year, current_year + 1)]
+    else:
+        year_list = [selected_year]
 
-        # print url
-        print(f"Querying URL: {url}")
+    for year in year_list:
+        selected_year = year
 
-        # open the web page
-        driver.get(url)
+        while True:
+            # generate search url from user input
+            url = generate_search_url(page_no, selected_year, order_type)
 
-        # wait for cookies notification
-        time.sleep(2)
+            # print url
+            print(f"Querying URL: {url}")
 
-        try:
-            # click on the privacy popup button
-            privacy_button = driver.find_element(
-                By.ID, "onetrust-accept-btn-handler"
-            ).click()
+            # open the web page
+            driver.get(url)
+
+            # wait for cookies notification
             time.sleep(2)
-        except:
-            pass
 
-        # Get the search items for the current page
-        data = get_search_items(driver)
-        # Add the data to the results
-        results.extend(data)
+            try:
+                # click on the privacy popup button
+                privacy_button = driver.find_element(
+                    By.ID, "onetrust-accept-btn-handler"
+                ).click()
+                time.sleep(2)
+            except:
+                pass
 
-        # Incrementally write results to CSV
-        write_to_csv(results)
+            # Get the search items for the current page
+            data = get_search_items(driver)
+            # Add the data to the results
+            results.extend(data)
 
-        # Increment the page number by 10 for the next page
-        page_no += 10
+            # Incrementally write results to CSV
+            write_to_csv(results)
 
-        # Check if there are more pages to process
-        if not data:
-            break
+            # Increment the page number by 10 for the next page
+            page_no += 10
+
+            # Check if there are more pages to process
+            if not data:
+                break
 
     driver.close()
     print("Closed Chromium Driver.")
