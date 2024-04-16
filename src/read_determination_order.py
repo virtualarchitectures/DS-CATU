@@ -144,7 +144,7 @@ def extract_address(text):
     addresses = []
 
     # Regular expression pattern to match addresses
-    address_pattern = r"(?:tenancy|occupation)(?: of | at |)(?:the dwelling|)(?: of | at |)(.*?)(?: is| as| has| also| within|\n)"
+    address_pattern = r"(?:tenancy|occupation|dwelling)(?: of | at |)(?:the dwelling|)(?: of | at |\s)(.*?)(?: is| as| has| also| within|\n)"
 
     # Find match for address in the text (case-insensitive)
     match = re.search(address_pattern, text, re.IGNORECASE)
