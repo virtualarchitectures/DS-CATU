@@ -168,12 +168,16 @@ def extract_date(text):
     dates = []
 
     # Regular_expression pattern to match determination date
-    date_pattern = r"(?:by the residential tenancies board on )(.*?)(?:\n)"
+    date_pattern = (
+        r"(?:residential tenancies board on|determination made on)(.*?)(?:\n)"
+    )
 
     # Find match for address in the text (case-insensitive)
     match = re.search(date_pattern, text, re.IGNORECASE)
     if match:
         date = match.group(1)
+        # Remove leading and trailing whitespace
+        date = date.strip()
         # Remove punctuation at the end
         date = date.rstrip(string.punctuation)
         print(f"Determination Date: {date}")
