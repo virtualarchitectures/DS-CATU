@@ -164,6 +164,26 @@ def extract_address(text):
     return address
 
 
+def extract_date(text):
+    dates = []
+
+    # Regular_expression pattern to match determination date
+    date_pattern = r"(?:by the residential tenancies board on )(.*?)(?:\n)"
+
+    # Find match for address in the text (case-insensitive)
+    match = re.search(date_pattern, text, re.IGNORECASE)
+    if match:
+        date = match.group(1)
+        # Remove punctuation at the end
+        date = date.rstrip(string.punctuation)
+        print(f"Determination Date: {date}")
+    else:
+        date = None
+        print("Unable to identify determination date!")
+
+    return date
+
+
 def find_keywords(text):
     matches = []
 
@@ -223,6 +243,9 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     # Extract addresses
     address = extract_address(combined_text)
 
+    # Extract date
+    date = extract_date(combined_text)
+
     # List determination keywords
     keywords_list = find_keywords(combined_text)
 
@@ -239,6 +262,7 @@ def pdf2text(file_path, output_folder, page_numbers=False):
                 file_name,
                 page_count,
                 os.path.basename(output_file_path),
+                date,
                 keywords_list,
                 address,
                 tenant_name,
@@ -260,6 +284,7 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
                 "Input Filename",
                 "Page Count",
                 "Output Filename",
+                "Determination Date",
                 "Keywords",
                 "Address",
                 "Tenant Name(s)",
