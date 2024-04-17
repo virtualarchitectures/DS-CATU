@@ -2,6 +2,7 @@ import os
 import re
 import string
 import csv
+from dateutil import parser
 from pdf2image import convert_from_path
 import pytesseract
 
@@ -180,6 +181,14 @@ def extract_date(text):
         date = date.strip()
         # Remove punctuation at the end
         date = date.rstrip(string.punctuation)
+        # Standardise date
+        try:
+            date = parser.parse(date)
+            date = date.strftime("%d/%m/%Y")
+            print(f"Determination Date: {date}")
+        except:
+            print("Unable to parse date!")
+            date = None
         print(f"Determination Date: {date}")
     else:
         date = None
