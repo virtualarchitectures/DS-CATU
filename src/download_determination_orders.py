@@ -124,14 +124,14 @@ def write_to_csv(data):
     with open(csv_output_file_path, "w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             "Title",
-            "Date",
+            "Upload Date",
             "Subject",
             "Determination",
             "DR No.",
-            "Determination_PDF",
+            "Determination PDF",
             "Tribunal",
             "TR No.",
-            "Tribunal_PDF",
+            "Tribunal PDF",
             "Comments",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -149,9 +149,9 @@ def get_search_items(driver):
         # initialise variable defaults
         item_data = {}
         item_data["Determination"] = False
-        item_data["Determination_PDF"] = None
+        item_data["Determination PDF"] = None
         item_data["Tribunal"] = False
-        item_data["Tribunal_PDF"] = None
+        item_data["Tribunal PDF"] = None
 
         # get the card title
         try:
@@ -173,7 +173,7 @@ def get_search_items(driver):
             elif heading == "TR No.":
                 item_data["TR No."] = value
             elif heading == "Date":
-                item_data["Date"] = value
+                item_data["Upload Date"] = value
             elif heading == "Subject":
                 item_data["Subject"] = value
 
@@ -190,10 +190,10 @@ def get_search_items(driver):
             # Extract determination and tribunal order information
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
-                item_data["Determination_PDF"] = pdf_link
+                item_data["Determination PDF"] = pdf_link
             elif "tribunal" in pdf_type.lower():
                 item_data["Tribunal"] = True
-                item_data["Tribunal_PDF"] = pdf_link
+                item_data["Tribunal PDF"] = pdf_link
 
             # Download pdf
             print(f"Downloading PDF: {pdf_link}")
