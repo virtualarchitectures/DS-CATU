@@ -5,8 +5,10 @@ import csv
 from pdf2image import convert_from_path
 import pytesseract
 
-input_folder = "data/downloaded_pdfs/"
+# input_folder = "data/downloaded_pdfs/"
 output_folder = "data/converted_text/"
+
+input_folder = "data/regex_test/"
 
 # input_folder = "data/input/"
 # output_folder = "data/output/"
@@ -144,7 +146,7 @@ def extract_address(text):
     addresses = []
 
     # Regular expression pattern to match addresses
-    address_pattern = r"(?:tenancy|occupation|dwelling)(?: of | at |(?! by ))(?:the dwelling|)(?: of | at |\s)(.*?)(?: is| as| has| also| within|\n)"
+    address_pattern = r"(?:tenancy|occupation|dwelling|dweding|dweiling|property)(?: of | at |(?! by | in | and| shall| agreement| within))(?:.|)(?:the dwelling|the dweding|the dweiling|the property|)(?: of | at |\s)(.*?)(?: is | as | has | also | within | plus | being | to |\n)"
 
     # Find match for address in the text (case-insensitive)
     match = re.search(address_pattern, text, re.IGNORECASE)
