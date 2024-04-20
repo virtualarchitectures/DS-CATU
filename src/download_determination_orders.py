@@ -271,11 +271,9 @@ def get_search_results():
                 # Increment the page number by 10 for the next page
                 page_no += 10
 
-                # TODO: Prevent code searching for additional page after end
                 # Check if there are more pages to process
                 if not data:
                     break
-    # TODO: Deduplicate output where adjudications include tribunal results.
     driver.close()
     print("Closed Chromium Driver.")
 
