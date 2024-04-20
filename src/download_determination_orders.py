@@ -166,9 +166,9 @@ def get_search_items(driver):
             ).get_attribute("innerText")
             value = element.get_attribute("innerText")
             if heading == "DR No.":
-                item_data["DR No"] = value
+                item_data["DR No."] = value
             elif heading == "TR No.":
-                item_data["TR No"] = value
+                item_data["TR No."] = value
             elif heading == "Date":
                 item_data["Upload Date"] = value
             elif heading == "Subject":
