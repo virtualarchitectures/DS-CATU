@@ -3,6 +3,7 @@ import time
 import datetime
 import csv
 import requests
+import requests.utils
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -169,9 +170,9 @@ def get_search_items(driver):
             ).get_attribute("innerText")
             value = element.get_attribute("innerText")
             if heading == "DR No.":
-                item_data["DR No."] = value
+                item_data["DR No"] = value
             elif heading == "TR No.":
-                item_data["TR No."] = value
+                item_data["TR No"] = value
             elif heading == "Date":
                 item_data["Upload Date"] = value
             elif heading == "Subject":
@@ -187,7 +188,6 @@ def get_search_items(driver):
                 By.CLASS_NAME, "download-card__title"
             ).get_attribute("innerText")
 
-            # TODO: Implement urllib.parse.unquote to replace '%20' escape characters
             # Extract determination and tribunal order information
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
