@@ -71,33 +71,29 @@ def generate_search_url(page_no, selected_year, order_type):
 
 
 def download_pdf(pdf_link):
-    if pdf_link:
-        # Check if the PDF link returns a valid response
-        response = requests.head(pdf_link)
-        if (
-            response.status_code != 200
-            or "application/pdf" not in response.headers.get("content-type", "")
-        ):
-            print(f"Error downloading PDF from {pdf_link}. Invalid PDF link.")
-            # TODO: Write message to comments column
-            return None
+    # Check if the PDF link returns a valid response
+    response = requests.head(pdf_link)
+    if response.status_code != 200 or "application/pdf" not in response.headers.get(
+        "content-type", ""
+    ):
+        error = "Error: Unable to download PDF."
+        print(error)
+        return error
 
-        # Create the downloaded_pdfs folder if it doesn't exist
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+    # Create the downloaded_pdfs folder if it doesn't exist
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
-        # Download the PDF to the specified folder
-        filename = pdf_link.split("/")[-1]
-        filepath = os.path.join(output_folder, filename)
+    # Download the PDF to the specified folder
+    filename = pdf_link.split("/")[-1]
+    filepath = os.path.join(output_folder, filename)
 
-        # Use requests to download the PDF
-        response = requests.get(pdf_link)
-        with open(filepath, "wb") as f:
-            f.write(response.content)
+    # Use requests to download the PDF
+    response = requests.get(pdf_link)
+    with open(filepath, "wb") as f:
+        f.write(response.content)
 
-        return filepath
-    else:
-        return None
+    return filepath
 
 
 def clean_data(data):
