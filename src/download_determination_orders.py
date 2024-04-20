@@ -187,6 +187,7 @@ def get_search_items(driver):
                 By.CLASS_NAME, "download-card__title"
             ).get_attribute("innerText")
 
+            # TODO: Implement urllib.parse.unquote to replace '%20' escape characters
             # Extract determination and tribunal order information
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
@@ -274,6 +275,7 @@ def get_search_results():
                 # Increment the page number by 10 for the next page
                 page_no += 10
 
+                # TODO: Prevent code searching for additional page after end
                 # Check if there are more pages to process
                 if not data:
                     break
