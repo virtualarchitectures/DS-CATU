@@ -25,7 +25,7 @@ def get_user_preferences():
     )
     selected_year = input("Enter your choice and press return: ").strip().lower()
 
-    # Validate user input for time period
+    # validate user input for time period
     if selected_year != "all" and (
         not selected_year.isdigit()
         or int(selected_year) < start_year
@@ -41,12 +41,12 @@ def get_user_preferences():
         "All": "adjudication_orders|tribunal_orders",
     }
 
-    # Prompt the user to select the dispute outcome type
+    # prompt the user to select the dispute outcome type
     options_text = " | ".join(order_types.keys())
     print(f"Select the dispute outcome type ({options_text}).")
     selected_option = input("Enter your choice and press return: ").strip().capitalize()
 
-    # Validate user input
+    # validate user input
     if selected_option not in order_types:
         print("Invalid option selected.")
         exit()
@@ -60,7 +60,7 @@ def generate_search_url(page_no, selected_year, order_type):
     # convert string to int
     page = str(page_no)
 
-    # Generate the search URL based on the selected option and time period
+    # generate the search URL based on the selected option and time period
     if selected_year == "All":
         search_url = (
             f"https://www.rtb.ie/search-results/listing/P{page}?collection={order_type}"
@@ -84,7 +84,7 @@ def download_pdf(pdf_link, output_folder=output_folder, max_retries=2):
     session.mount("https://", adapter)
 
     try:
-        # Check if the PDF link returns a valid response
+        # check if the PDF link returns a valid response
         response = session.head(pdf_link)
         if (
             response.status_code != 200
@@ -94,15 +94,15 @@ def download_pdf(pdf_link, output_folder=output_folder, max_retries=2):
             print(error)
             return error
 
-        # Create the downloaded_pdfs folder if it doesn't exist
+        # reate the downloaded_pdfs folder if it doesn't exist
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
-        # Download the PDF to the specified folder
+        # download the PDF to the specified folder
         filename = pdf_link.split("/")[-1]
         filepath = os.path.join(output_folder, filename)
 
-        # Use requests to download the PDF
+        # use requests to download the PDF
         response = session.get(pdf_link)
         with open(filepath, "wb") as f:
             f.write(response.content)
@@ -131,10 +131,10 @@ def clean_data(data):
 
 
 def write_to_csv(data):
-    # Clean the data
+    # clean the data
     cleaned_data = clean_data(data)
 
-    # Write data to CSV file
+    # write data to CSV file
     with open(csv_output_file_path, "w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             "Title",
@@ -201,7 +201,7 @@ def get_search_items(driver):
                 By.CLASS_NAME, "download-card__title"
             ).get_attribute("innerText")
 
-            # Extract determination and tribunal order information
+            # extract determination and tribunal order information
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = pdf_link
@@ -209,11 +209,11 @@ def get_search_items(driver):
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = pdf_link
 
-            # Download pdf
+            # download pdf
             print(f"Downloading PDF: {pdf_link}")
             download_pdf(pdf_link)
 
-        # Append the data to the list
+        # append the data to the list
         data.append(item_data)
 
     return data
@@ -235,16 +235,15 @@ def get_search_results():
     chrome_options.add_experimental_option("detach", True)
 
     # initialise the Chrome webdriver
-    # driver = webdriver.Chrome()  # run with UI for debugging
-    driver = webdriver.Chrome(options=chrome_options)  # run headless
+    driver = webdriver.Chrome(options=chrome_options)
 
-    # Disaggregate searches for 'All' years
+    # disaggregate searches for 'All' years
     if selected_year == "All":
         year_list = [year for year in range(start_year, current_year + 1)]
     else:
         year_list = [selected_year]
 
-    # Disaggregate searches for 'All' order types
+    # disaggregate searches for 'All' order types
     if selected_type == "adjudication_orders|tribunal_orders":
         order_list = ["adjudication_orders", "tribunal_orders"]
     else:
