@@ -268,7 +268,7 @@ def get_search_results():
                 driver.get(url)
 
                 # wait for the page to load completely
-                wait = WebDriverWait(driver, 10)
+                wait = WebDriverWait(driver, 20)
                 wait.until(
                     EC.presence_of_element_located(
                         (By.CLASS_NAME, "card-list--had-downloadable")
