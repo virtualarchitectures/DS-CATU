@@ -216,7 +216,7 @@ def get_search_items(driver):
             print(f"Downloading PDF: {pdf_link}")
             download_pdf(pdf_link)
             # pause between downloads
-            time.sleep(2)
+            time.sleep(1)
 
         # append the data to the list
         data.append(item_data)
