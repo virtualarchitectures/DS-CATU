@@ -4,6 +4,7 @@ import datetime
 import csv
 import requests
 import requests.utils
+from requests.adapters import HTTPAdapter, Retry
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -70,30 +71,46 @@ def generate_search_url(page_no, selected_year, order_type):
     return search_url
 
 
-def download_pdf(pdf_link):
-    # Check if the PDF link returns a valid response
-    response = requests.head(pdf_link)
-    if response.status_code != 200 or "application/pdf" not in response.headers.get(
-        "content-type", ""
-    ):
-        error = "Error: Unable to download PDF."
-        print(error)
-        return error
+def download_pdf(pdf_link, max_retries=3):
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=max_retries,
+        status_forcelist=[500, 502, 503, 504],
+        method_whitelist=["HEAD", "GET"],
+        backoff_factor=2,
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
 
-    # Create the downloaded_pdfs folder if it doesn't exist
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    try:
+        # Check if the PDF link returns a valid response
+        response = session.head(pdf_link)
+        if (
+            response.status_code != 200
+            or "application/pdf" not in response.headers.get("content-type", "")
+        ):
+            error = "Error: Unable to download PDF."
+            print(error)
+            return error
 
-    # Download the PDF to the specified folder
-    filename = pdf_link.split("/")[-1]
-    filepath = os.path.join(output_folder, filename)
+        # Create the downloaded_pdfs folder if it doesn't exist
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
-    # Use requests to download the PDF
-    response = requests.get(pdf_link)
-    with open(filepath, "wb") as f:
-        f.write(response.content)
+        # Download the PDF to the specified folder
+        filename = pdf_link.split("/")[-1]
+        filepath = os.path.join(output_folder, filename)
 
-    return filepath
+        # Use requests to download the PDF
+        response = session.get(pdf_link)
+        with open(filepath, "wb") as f:
+            f.write(response.content)
+
+        return filepath
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading PDF: {e}")
+        return None
 
 
 def clean_data(data):
