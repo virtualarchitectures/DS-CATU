@@ -8,6 +8,9 @@ from requests.adapters import HTTPAdapter, Retry
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 
 output_folder = "data/downloaded_pdfs/"
 
@@ -221,7 +224,7 @@ def get_search_items(driver):
 
 def get_search_results():
     results = []
-    # inital page
+    # initial page
     page_no = 0
 
     # get user input
@@ -263,6 +266,14 @@ def get_search_results():
 
                 # open the web page
                 driver.get(url)
+
+                # Wait for the page to load completely
+                wait = WebDriverWait(driver, 10)  # Adjust the timeout as needed
+                wait.until(
+                    EC.presence_of_element_located(
+                        (By.CLASS_NAME, "card-list--had-downloadable")
+                    )
+                )
 
                 # wait for cookies notification
                 time.sleep(2)
