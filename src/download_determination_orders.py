@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.common.exceptions import TimeoutException
 
 output_folder = "data/downloaded_pdfs/"
 
@@ -26,10 +26,10 @@ def get_user_preferences():
     print(
         f"Select a year from {start_year}-{current_year} or enter 'All' for all years."
     )
-    selected_year = input("Enter your choice and press return: ").strip().lower()
+    selected_year = input("Enter your choice and press return: ").strip().capitalize()
 
     # validate user input for time period
-    if selected_year != "all" and (
+    if selected_year != "All" and (
         not selected_year.isdigit()
         or int(selected_year) < start_year
         or int(selected_year) > current_year
@@ -269,11 +269,17 @@ def get_search_results():
 
                 # wait for the page to load completely
                 wait = WebDriverWait(driver, 20)
-                wait.until(
-                    EC.presence_of_element_located(
-                        (By.CLASS_NAME, "card-list--had-downloadable")
+                try:
+                    # check for downloadable data
+                    wait.until(
+                        EC.presence_of_element_located(
+                            (By.CLASS_NAME, "card-list--had-downloadable")
+                        )
                     )
-                )
+                except TimeoutException:
+                    # reset page number and break
+                    page_no = 0
+                    break
 
                 # wait for cookies notification
                 time.sleep(2)
@@ -298,9 +304,6 @@ def get_search_results():
                 # Increment the page number by 10 for the next page
                 page_no += 10
 
-                # Check if there are more pages to process
-                if not data:
-                    break
     driver.close()
     print("Closed Chromium Driver.")
 
