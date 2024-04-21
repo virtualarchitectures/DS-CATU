@@ -71,7 +71,7 @@ def generate_search_url(page_no, selected_year, order_type):
     return search_url
 
 
-def download_pdf(pdf_link, max_retries=3):
+def download_pdf(pdf_link, output_folder=output_folder, max_retries=2):
     session = requests.Session()
     retry_strategy = Retry(
         total=max_retries,
