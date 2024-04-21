@@ -22,10 +22,10 @@ def get_user_preferences():
     print(
         f"Select a year from {start_year}-{current_year} or enter 'All' for all years."
     )
-    selected_year = input("Enter your choice and press return: ")
+    selected_year = input("Enter your choice and press return: ").strip().lower()
 
     # Validate user input for time period
-    if selected_year != "All" and (
+    if selected_year != "all" and (
         not selected_year.isdigit()
         or int(selected_year) < start_year
         or int(selected_year) > current_year
@@ -35,15 +35,15 @@ def get_user_preferences():
 
     # reference list for user input options
     order_types = {
-        "All": "adjudication_orders|tribunal_orders",
-        "Tribunal": "tribunal_orders",
         "Adjudication": "adjudication_orders",
+        "Tribunal": "tribunal_orders",
+        "All": "adjudication_orders|tribunal_orders",
     }
 
     # Prompt the user to select the dispute outcome type
     options_text = " | ".join(order_types.keys())
     print(f"Select the dispute outcome type ({options_text}).")
-    selected_option = input("Enter your choice and press return: ")
+    selected_option = input("Enter your choice and press return: ").strip().capitalize()
 
     # Validate user input
     if selected_option not in order_types:
