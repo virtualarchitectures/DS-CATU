@@ -230,10 +230,10 @@ def get_search_items(driver):
     return data
 
 
-def get_search_results():
+def get_search_results(starting_page=0):
     results = []
-    # initial page
-    page_no = 0
+    # set starting page number
+    page_no = starting_page
 
     # get user input
     selected_year, selected_type = get_user_preferences()
@@ -316,4 +316,4 @@ def get_search_results():
     print("Closed Chromium Driver.")
 
 
-get_search_results()
+get_search_results(starting_page=600)
