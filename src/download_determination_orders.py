@@ -316,4 +316,4 @@ def get_search_results(starting_page=0):
     print("Closed Chromium Driver.")
 
 
-get_search_results(starting_page=600)
+get_search_results(starting_page=0)
