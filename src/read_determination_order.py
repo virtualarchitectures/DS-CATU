@@ -183,8 +183,8 @@ def extract_date(text):
         date = date.rstrip(string.punctuation)
         # Standardise date
         try:
-            date = parser.parse(date)
-            date = date.strftime("%d/%m/%Y")
+            parsed_date = parser.parse(date)
+            date = parsed_date.strftime("%d/%m/%Y")
             print(f"Determination Date: {date}")
         except:
             print("Unable to parse date!")

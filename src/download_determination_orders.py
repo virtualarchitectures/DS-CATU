@@ -1,6 +1,7 @@
 import os
 import time
 import datetime
+from dateutil import parser
 import csv
 import requests
 import requests.utils
@@ -190,7 +191,12 @@ def get_search_items(driver):
             elif heading == "TR No.":
                 item_data["TR No."] = value
             elif heading == "Date":
-                item_data["Upload Date"] = value
+                # Standardize date format using dateutil parser
+                try:
+                    parsed_date = parser.parse(value)
+                    item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
+                except ValueError:
+                    item_data["Upload Date"] = None
             elif heading == "Subject":
                 item_data["Subject"] = value
 
