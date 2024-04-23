@@ -197,7 +197,7 @@ def get_search_items(driver):
                     item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
                 except ValueError:
                     item_data["Upload Date"] = None
-            elif heading == "Subject":
+            elif heading == "Subject of Dispute":
                 item_data["Subject"] = value
 
         # get pdfs
