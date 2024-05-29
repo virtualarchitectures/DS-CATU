@@ -9,34 +9,35 @@ output_folder = "data/summary/"
 df1 = pd.read_csv(f"{input_folder}case_metadata.csv")
 df2 = pd.read_csv(f"{input_folder}case_details.csv")
 
-# Preprocess Input Filename in df2
-df2["Input Filename"] = df2["Input Filename"].apply(
-    lambda x: urllib.parse.unquote_plus(x.split("DR")[-1])
-)
 
-
-# Function to extract filename from URL
-def extract_filename(url):
-    if isinstance(url, str):  # Check if the value is a string
-        return url.split("/")[-1]
+# Function to extract and decode filenames
+def normalize_filenames(name):
+    if isinstance(name, str):  # Check if the value is a string
+        # Extract filename and decode URL-encoded characters
+        filename = urllib.parse.unquote_plus(name.split("/")[-1])
+        return filename.strip()  # Strip leading/trailing whitespace
     else:
-        return np.nan  # Return NaN if the value is not a string
+        return ""  # Return empty string
 
 
-# Extract filename from Determination PDF URLs
-df1["Determination PDF Filename"] = df1["Determination PDF"].apply(extract_filename)
+# Extract and decode filenames in both DataFrames
+df1["Determination Filename Decoded"] = df1["Determination PDF"].apply(
+    normalize_filenames
+)
+df2["Input Filename Decoded"] = df2["Input Filename"].apply(normalize_filenames)
 
 # Merge DataFrames based on Determination order
 merged_df = pd.merge(
     df1,
     df2,
-    left_on="Determination PDF Filename",
-    right_on="Input Filename",
+    left_on="Determination Filename Decoded",
+    right_on="Input Filename Decoded",
     how="left",
 )
 
-# Drop the extra column created during merge
-merged_df.drop("Determination PDF Filename", axis=1, inplace=True)
+# Drop the extra columns created during merge
+merged_df.drop("Determination Filename Decoded", axis=1, inplace=True)
+merged_df.drop("Input Filename Decoded", axis=1, inplace=True)
 
 # Reorder columns, moving "Comments" column to the end
 columns = list(merged_df.columns)
