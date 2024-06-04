@@ -3,3 +3,4 @@ pdf2image
 pytesseract
 selenium
 requests
+python-dotenv
