@@ -66,10 +66,13 @@ def geocode_addresses(input_csv, output_csv, api_key, api_provider):
     longitudes = []
 
     for address in df["Address"]:
-        lat, lng = geocode_address(api_key, address, api_provider)
+        if pd.notna(address) and address.strip() != "":
+            lat, lng = geocode_address(api_key, address, api_provider)
+            time.sleep(1)  # To respect API rate limits
+        else:
+            lat, lng = None, None
         latitudes.append(lat)
         longitudes.append(lng)
-        time.sleep(1)  # To respect API rate limits
 
     df["Latitude"] = latitudes
     df["Longitude"] = longitudes
@@ -87,7 +90,7 @@ if __name__ == "__main__":
     )
     api_key_google = os.getenv("GOOGLE_GEOCODING_API_KEY")  # Google API key
     api_key_here = os.getenv("HERE_GEOCODING_API_KEY")  # Here API key
-    api_provider = os.getenv("API_PROVIDER")  # API provider (google/here)S
+    api_provider = os.getenv("API_PROVIDER")  # API provider (google/here)
 
     if api_provider == "google":
         api_key = api_key_google
