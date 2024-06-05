@@ -82,9 +82,7 @@ def geocode_addresses(input_csv, output_csv, api_key, api_provider):
 
 if __name__ == "__main__":
     # Configuration
-    input_csv = (
-        "data/summary/BACKUP_merged_summary_report.csv"  # Path to your input CSV file
-    )
+    input_csv = "data/summary/merged_summary_report.csv"  # Path to your input CSV file
     output_csv = (
         "data/summary/geocoded_summary_report.csv"  # Path to your output CSV file
     )
