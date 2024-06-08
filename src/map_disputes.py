@@ -49,7 +49,7 @@ for index, row in df.iterrows():
     ).add_to(marker_cluster)
 
 # Define the output folder and file name
-output_folder = "map"
+output_folder = "data/map"
 output_file = "RTB-Disputes-Map.html"
 
 # Create the output folder if it doesn't exist
