@@ -27,7 +27,7 @@ def combine_csv(input_dir, output_file):
 
 
 if __name__ == "__main__":
-    input_dir = "data/geocoding_batches"  # Replace with your input directory containing the split CSV files
-    output_file = "data/recombined_summary_report.csv"  # Replace with your desired output CSV file path
+    input_dir = "data/geocoded"  # Replace with your input directory containing the split CSV files
+    output_file = "data/summary/geocoded_summary_report.csv"  # Replace with your desired output CSV file path
 
     combine_csv(input_dir, output_file)
