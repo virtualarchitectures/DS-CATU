@@ -98,7 +98,7 @@ def download_pdf(pdf_link, output_folder=output_folder, max_retries=2):
             print(error)
             return error
 
-        # reate the downloaded_pdfs folder if it doesn't exist
+        # create the downloaded_pdfs folder if it doesn't exist
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
