@@ -209,9 +209,9 @@ def find_keywords(text):
     # Split the text into words
     words = text_lower.split()
 
-    # Search words for matching keywords
+    # Search for matching words and phrases
     for keyword in keywords:
-        if keyword.lower() in words:
+        if re.search(r"\b" + re.escape(keyword).lower() + r"\b", " ".join(words)):
             matches.append(keyword)
 
     print(f"Keyword matches: {matches}")
