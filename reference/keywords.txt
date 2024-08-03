@@ -4,6 +4,8 @@ agreement
 breach
 eviction
 illegal
+invalid
+legal
 misuse
 necessary repairs
 no jurisdiction
@@ -22,6 +24,8 @@ unlawfully
 unjustified
 unjustifiable
 unjustifiably
+vacate
+valid
 s 34
 s. 34
 section 34
