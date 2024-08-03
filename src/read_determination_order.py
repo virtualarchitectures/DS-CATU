@@ -206,10 +206,12 @@ def find_keywords(text):
     # Convert the text to lowercase for case-insensitive matching
     text_lower = text.lower()
 
-    # Search file for matches in keywords
+    # Split the text into words
+    words = text_lower.split()
+
+    # Search words for matching keywords
     for keyword in keywords:
-        # Check if the lowercase keyword exists in the lowercase text
-        if keyword.lower() in text_lower:
+        if keyword.lower() in words:
             matches.append(keyword)
 
     print(f"Keyword matches: {matches}")
