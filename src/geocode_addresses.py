@@ -82,13 +82,15 @@ def geocode_addresses(input_csv, output_csv, api_key, api_provider):
 
 if __name__ == "__main__":
     # Configuration
-    input_csv = "data/summary/merged_summary_report.csv"  # Path to your input CSV file
-    output_csv = (
-        "data/summary/geocoded_summary_report.csv"  # Path to your output CSV file
-    )
     api_key_google = os.getenv("GOOGLE_GEOCODING_API_KEY")  # Google API key
     api_key_here = os.getenv("HERE_GEOCODING_API_KEY")  # Here API key
     api_provider = os.getenv("API_PROVIDER")  # API provider (google/here)
+
+    input_csv = "data/summary/merged_summary_report.csv"  # Path to your input CSV file
+    # TODO: Separate Google and Here outputs
+    output_csv = (
+        "data/summary/geocoded_summary_report.csv"  # Path to your output CSV file
+    )
 
     if api_provider == "google":
         api_key = api_key_google
