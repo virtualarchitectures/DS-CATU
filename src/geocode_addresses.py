@@ -84,13 +84,13 @@ if __name__ == "__main__":
     # Configuration
     api_key_google = os.getenv("GOOGLE_GEOCODING_API_KEY")  # Google API key
     api_key_here = os.getenv("HERE_GEOCODING_API_KEY")  # Here API key
-    api_provider = os.getenv("API_PROVIDER")  # API provider (google/here)
+
+    # Provide API provider (here/google)
+    api_provider = "Here"
+    api_provider = api_provider.lower()
 
     input_csv = "data/summary/merged_summary_report.csv"  # Path to your input CSV file
-    # TODO: Separate Google and Here outputs
-    output_csv = (
-        "data/summary/geocoded_summary_report.csv"  # Path to your output CSV file
-    )
+    output_csv = f"data/summary/{api_provider}_geocoded_summary_report.csv"  # Path to your output CSV file
 
     if api_provider == "google":
         api_key = api_key_google
