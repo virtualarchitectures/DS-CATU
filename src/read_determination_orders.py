@@ -3,21 +3,13 @@ import re
 import string
 import csv
 from dateutil import parser
-from pdf2image import convert_from_path
-import pytesseract
 
-input_folder = "data/downloaded_pdfs/"
-output_folder = "data/converted_text/"
+input_folder = "data/converted_text/"
 
 keywords_file = "reference/keywords.txt"
 
-csv_output_file_path = "data/summary/case_details.csv"
-
-
-def read_keywords(file_path):
-    with open(file_path, "r") as file:
-        keywords = [line.strip() for line in file.readlines() if line.strip()]
-    return keywords
+# csv_output_file_path = "data/summary/case_details.csv"
+csv_output_file_path = "data/test/case_details.csv"
 
 
 def get_file_paths(input_folder):
@@ -33,36 +25,10 @@ def get_file_paths(input_folder):
     return file_paths
 
 
-def join_rows(text):
-    # Store the result
-    result = []
-
-    # Split multiline strings into a list of lines
-    lines = text.split("\n")
-
-    # Accumulate lines into paragraphs
-    current_paragraph = ""
-    for line in lines:
-        # If the line is not empty
-        if line.strip():
-            # Add the line to the current paragraph
-            current_paragraph += line + " "
-            # If the line ends with a colon or full stop, start a new paragraph
-            if line.strip().endswith(":") or line.strip().endswith("."):
-                result.append(current_paragraph.strip())
-                current_paragraph = ""
-        else:
-            # Add the current paragraph to the result if not empty
-            if current_paragraph:
-                result.append(current_paragraph.strip())
-                current_paragraph = ""
-
-    # Add the remaining paragraph to the result if not empty
-    if current_paragraph:
-        result.append(current_paragraph.strip())
-
-    # Join the paragraphs with newlines and return the result
-    return "\n".join(result)
+def read_keywords(file_path):
+    with open(file_path, "r") as file:
+        keywords = [line.strip() for line in file.readlines() if line.strip()]
+    return keywords
 
 
 def extract_names(text):
@@ -214,85 +180,54 @@ def find_keywords(text):
     return matches
 
 
-def pdf2text(file_path, output_folder, page_numbers=False):
-    images = convert_from_path(file_path)
-
+def read_determination_orders(file_path):
     # Extract the file name
     path, file_name = os.path.split(file_path)
     base_name, extension = os.path.splitext(file_name)
 
-    # Get the number of pages
-    page_count = len(images)
-    print(f"Pages: {page_count}")
+    # Read the file contents
+    with open(file_path, "r") as file:
+        text = file.read()
 
-    # Combine text from multiple pages
-    combined_text = ""
+        # Extract Landlord and Tenant Names
+        tenant_name, tenant_role, landlord_name, landlord_role = extract_names(text)
 
-    # Iterate through pages
-    for page_number, image_data in enumerate(images, start=1):
-        txt = pytesseract.image_to_string(image_data)
+        # Extract addresses
+        address = extract_address(text)
 
-        # Remove form feed character
-        txt = txt.replace("\x0c", "")
+        # Extract date
+        date = extract_date(text)
 
-        # Combine pages and add page numbers if requested
-        if page_numbers:
-            combined_text += f"Page # {str(page_number)}\n\n"
-            combined_text += f"{txt}\n\n"
-        else:
-            combined_text += f"{txt}"
+        # List determination keywords
+        keywords_list = find_keywords(text)
 
-    # Join lines that don't end with a full stop
-    combined_text = join_rows(combined_text)
-
-    # Extract Landlord and Tenant Names
-    tenant_name, tenant_role, landlord_name, landlord_role = extract_names(
-        combined_text
-    )
-
-    # Extract addresses
-    address = extract_address(combined_text)
-
-    # Extract date
-    date = extract_date(combined_text)
-
-    # List determination keywords
-    keywords_list = find_keywords(combined_text)
-
-    # Write combined text to a file
-    output_file_path = os.path.join(output_folder, f"{base_name}.txt")
-    with open(output_file_path, mode="w") as f:
-        f.write(combined_text)
-
-    # Write to CSV file
-    with open(csv_output_file_path, mode="a", newline="") as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(
-            [
-                file_name,
-                page_count,
-                os.path.basename(output_file_path),
-                date,
-                keywords_list,
-                address,
-                tenant_name,
-                tenant_role,
-                landlord_name,
-                landlord_role,
-            ]
-        )
+        # Write to CSV file
+        with open(csv_output_file_path, mode="a", newline="") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(
+                [
+                    file_name,
+                    os.path.basename(file_path),
+                    date,
+                    keywords_list,
+                    address,
+                    tenant_name,
+                    tenant_role,
+                    landlord_name,
+                    landlord_role,
+                ]
+            )
 
 
-def process_determination_orders(input_folder, output_folder, page_numbers=False):
+def process_determination_orders(input_folder):
     file_paths = get_file_paths(input_folder)
 
     # Write CSV header
-    with open(csv_output_file_path, mode="w", newline="") as csv_file:
+    with open(csv_output_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(
             [
                 "Input Filename",
-                "Page Count",
                 "Output Filename",
                 "Determination Date",
                 "Keywords",
@@ -306,7 +241,7 @@ def process_determination_orders(input_folder, output_folder, page_numbers=False
 
     for file_path in file_paths:
         print(f"Processing: {file_path}")
-        pdf2text(file_path, output_folder, page_numbers)
+        read_determination_orders(file_path)
 
 
-process_determination_orders(input_folder, output_folder, page_numbers=False)
+process_determination_orders(input_folder)
