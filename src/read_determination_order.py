@@ -9,11 +9,6 @@ import pytesseract
 input_folder = "data/downloaded_pdfs/"
 output_folder = "data/converted_text/"
 
-# input_folder = "data/regex_test/"
-
-# input_folder = "data/input/"
-# output_folder = "data/output/"
-
 keywords_file = "reference/keywords.txt"
 
 csv_output_file_path = "data/summary/case_details.csv"
