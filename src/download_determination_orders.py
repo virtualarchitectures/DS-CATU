@@ -139,7 +139,7 @@ def write_to_csv(data):
     cleaned_data = clean_data(data)
 
     # write data to CSV file
-    with open(csv_output_file_path, "w", newline="", encoding="utf-8") as csvfile:
+    with open(csv_output_file_path, mode="w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             "Title",
             "Upload Date",
