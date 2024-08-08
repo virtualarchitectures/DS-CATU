@@ -104,7 +104,7 @@ def extract_names(text):
     return tenant_name, tenant_role, landlord_name, landlord_role
 
 
-def extract_address(text):
+def extract_address_regex(text):
     addresses = []
 
     # Regular expression pattern to match addresses
