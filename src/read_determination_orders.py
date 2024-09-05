@@ -3,6 +3,8 @@ import re
 import string
 import csv
 from dateutil import parser
+import json
+import ollama
 
 input_folder = "data/converted_text/"
 
@@ -126,6 +128,45 @@ def extract_address_regex(text):
     return address
 
 
+def extract_address_ollama(text):
+    # Calling for additional information stabilises the model output
+    schema = """{
+        "Landlord Name(s)": "",
+        "Tenant Name(s)": "",
+        "Address": "",
+        }"""
+
+    payload = f"""
+        The following instructions are important and MUST be followed. Please read the following text and fill in the blanks in the JSON schema provided. Please do not respond conversationally. Please do not comment. You should respond with JSON like a REST API. Only return the JSON between curly braces. Respond strictly with valid JSON as this will be parsed directly with the python function json.loads().
+
+        text = ""{text}""
+
+        schema = ""{schema}"" 
+        """
+
+    try:
+        # Initialise and call Ollama
+        response = ollama.generate(
+            model="llama3",
+            prompt=f"{payload}",
+            format="json",
+        )
+
+        # Clean and parse response
+        response_json = json.loads(re.sub(r"`", "", response["response"]))
+        address = response_json.get("Address")
+        # Remove leading and trailing whitespace
+        address = address.strip()
+        # Remove punctuation at the end
+        address = address.rstrip(string.punctuation)
+        print(f"Address: {address}")
+    except:
+        address = None
+        print("Unable to identify address!")
+
+    return address
+
+
 def extract_date(text):
     dates = []
 
@@ -193,7 +234,7 @@ def read_determination_orders(file_path):
         tenant_name, tenant_role, landlord_name, landlord_role = extract_names(text)
 
         # Extract addresses
-        address = extract_address(text)
+        address = extract_address_ollama(text)
 
         # Extract date
         date = extract_date(text)
