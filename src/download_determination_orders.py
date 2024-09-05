@@ -75,7 +75,7 @@ def generate_search_url(page_no, selected_year, order_type):
     return search_url
 
 
-def download_pdf(pdf_link, output_folder=output_folder, max_retries=2):
+def download_pdf(pdf_link, output_folder, max_retries=2):
     session = requests.Session()
     retry_strategy = Retry(
         total=max_retries,
@@ -214,13 +214,15 @@ def get_search_items(driver):
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = pdf_link
+                output_folder = os.path.join(output_folder, "determinations")
             elif "tribunal" in pdf_type.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = pdf_link
+                output_folder = os.path.join(output_folder, "tribunals")
 
             # download pdf
             print(f"Downloading PDF: {pdf_link}")
-            download_pdf(pdf_link)
+            download_pdf(pdf_link, output_folder)
             # pause between downloads
             time.sleep(1)
 
