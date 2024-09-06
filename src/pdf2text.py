@@ -51,7 +51,7 @@ def join_rows(text):
     return "\n".join(result)
 
 
-def pdf2text(file_path, output_folder, page_numbers=False):
+def pdf2text(file_path, output_folder, subfolder, page_numbers=False):
     images = convert_from_path(file_path)
 
     # Extract the file name
@@ -82,12 +82,14 @@ def pdf2text(file_path, output_folder, page_numbers=False):
     # Join lines that don't end with a full stop
     combined_text = join_rows(combined_text)
 
-    # create the output folder if it doesn't exist
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    # Create the subfolder in the output folder if it doesn't exist
+    subfolder_path = os.path.join(output_folder, subfolder)
+    if not os.path.exists(subfolder_path):
+        os.makedirs(subfolder_path)
 
-    # Write combined text to a file
-    output_file_path = os.path.join(output_folder, f"{base_name}.txt")
+    # Write combined text to a file in the corresponding subfolder
+    output_file_path = os.path.join(subfolder_path, f"{base_name}.txt")
+    print(f"Output: {output_file_path}")
     with open(output_file_path, mode="w") as f:
         f.write(combined_text)
 
@@ -97,7 +99,11 @@ def process_pdfs(input_folder, output_folder, page_numbers=False):
 
     for file_path in file_paths:
         print(f"Processing: {file_path}")
-        pdf2text(file_path, output_folder, page_numbers)
+        # Identify the subfolder name
+        subfolder = os.path.basename(os.path.dirname(file_path))
+        print(f"Subfolder: {subfolder}")
+        # Process the PDF and store it in the corresponding output subfolder
+        pdf2text(file_path, output_folder, subfolder, page_numbers)
 
 
 process_pdfs(input_folder, output_folder, page_numbers=False)
