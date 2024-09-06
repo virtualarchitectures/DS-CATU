@@ -188,7 +188,6 @@ def extract_date(text):
         except:
             print("Unable to parse date!")
             date = None
-        print(f"Determination Date: {date}")
     else:
         date = None
         print("Unable to identify determination date!")
