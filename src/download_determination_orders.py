@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
-output_folder = "data/downloaded_pdfs/"
+pdf_folder = "data/downloaded_pdfs/"
 
 csv_output_file_path = "data/summary/case_metadata.csv"
 
@@ -175,32 +175,52 @@ def get_search_items(driver):
         try:
             item_data["Title"] = i.find_element(
                 By.CLASS_NAME, "card-list__title"
-            ).get_attribute("innerText")
+            ).text.strip()
         except:
             item_data["Title"] = None
 
         # get the card details
-        text_elements = i.find_elements(By.CLASS_NAME, "card-list__text")
-        for element in text_elements:
-            heading = element.find_element(
-                By.XPATH, "./preceding-sibling::p[@class='card-list__heading']"
-            ).get_attribute("innerText")
-            value = element.get_attribute("innerText")
-            if heading == "DR No.":
-                item_data["DR No."] = value
-            elif heading == "TR No.":
-                item_data["TR No."] = value
-            elif heading == "Date":
-                # Standardize date format using dateutil parser
+        headings = i.find_elements(By.CLASS_NAME, "card-list__heading")
+        # loop through headings
+        for heading in headings:
+            heading_text = heading.text.strip()
+
+            if heading_text == "Subject of Dispute":
                 try:
+                    item_data["Subject"] = heading.find_element(
+                        By.XPATH, "following-sibling::p"
+                    ).text.strip()
+                except:
+                    item_data["Subject"] = None
+
+            elif heading_text == "DR No.":
+                try:
+                    item_data["DR No."] = heading.find_element(
+                        By.XPATH, "following-sibling::p"
+                    ).text.strip()
+                except:
+                    item_data["DR No."] = None
+
+            elif heading_text == "TR No.":
+                try:
+                    item_data["TR No."] = heading.find_element(
+                        By.XPATH, "following-sibling::p"
+                    ).text.strip()
+                except:
+                    item_data["TR No."] = None
+
+            elif heading_text == "Date":
+                try:
+                    value = heading.find_element(
+                        By.XPATH, "following-sibling::p"
+                    ).text.strip()
+                    # Standardize date format using dateutil parser
                     parsed_date = parser.parse(value)
                     item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
-                except ValueError:
+                except:
                     item_data["Upload Date"] = None
-            elif heading == "Subject of Dispute":
-                item_data["Subject"] = value
 
-        # get pdfs
+        # get pdf information
         download_cards = i.find_elements(
             By.CLASS_NAME, "download-card.download-card--in-card"
         )
@@ -214,11 +234,11 @@ def get_search_items(driver):
             if "determination" in pdf_type.lower():
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = pdf_link
-                output_folder = os.path.join(output_folder, "determinations")
+                output_folder = os.path.join(pdf_folder, "determinations")
             elif "tribunal" in pdf_type.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = pdf_link
-                output_folder = os.path.join(output_folder, "tribunals")
+                output_folder = os.path.join(pdf_folder, "tribunals")
 
             # download pdf
             print(f"Downloading PDF: {pdf_link}")
