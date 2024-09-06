@@ -36,14 +36,14 @@ def extract_names(text):
     tenant_role = None
     landlord_role = None
     # Define alternate regular expression patterns
-    pattern1 = r"In the matter of (.+?) [\{\(\[]Applicant Tenant(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Respondent Landlord(?:s|\(s\))?[\)\}\]]"
-    pattern2 = r"In the matter of (.+?) [\{\(\[]Applicant Landlord(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Respondent Tenant(?:s|\(s\))?[\)\}\]]"
-    pattern3 = r"In the matter of (.+?) [\{\(\[]Applicant/Respondent Tenant(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Respondent/Applicant Landlord(?:s|\(s\))?[\)\}\]]"
-    pattern4 = r"In the matter of (.+?) [\{\(\[]Applicant/Respondent Landlord(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Respondent/Applicant Tenant(?:s|\(s\))?[\)\}\]]"
-    pattern5 = r"In the matter of (.+?) [\{\(\[]Tenant(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Landlord(?:s|\(s\))?[\)\}\]]"
-    pattern6 = r"In the matter of (.+?) [\{\(\[]Landlord(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Tenant(?:s|\(s\))?[\)\}\]]"
-    pattern7 = r"In the matter of (.+?) [\{\(\[]Appellant Tenant(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Respondent Landlord(?:s|\(s\))?[\)\}\]]"
-    pattern8 = r"In the matter of (.+?) [\{\(\[]Appellant Landlord(?:s|\(s\))?[\)\}\]] and (.+?) [\{\(\[]Respondent Tenant(?:s|\(s\))?[\)\}\]]"
+    pattern1 = r"In the matter of (.+?) [\{\(\[]Applicant Tenant(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Respondent Landlord(?:s|\(s\))?[\)\}\]]"
+    pattern2 = r"In the matter of (.+?) [\{\(\[]Applicant Landlord(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Respondent Tenant(?:s|\(s\))?[\)\}\]]"
+    pattern3 = r"In the matter of (.+?) [\{\(\[]Applicant/Respondent Tenant(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Respondent/Applicant Landlord(?:s|\(s\))?[\)\}\]]"
+    pattern4 = r"In the matter of (.+?) [\{\(\[]Applicant/Respondent Landlord(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Respondent/Applicant Tenant(?:s|\(s\))?[\)\}\]]"
+    pattern5 = r"In the matter of (.+?) [\{\(\[]Tenant(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Landlord(?:s|\(s\))?[\)\}\]]"
+    pattern6 = r"In the matter of (.+?) [\{\(\[]Landlord(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Tenant(?:s|\(s\))?[\)\}\]]"
+    pattern7 = r"In the matter of (.+?) [\{\(\[]Appellant Tenant(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Respondent Landlord(?:s|\(s\))?[\)\}\]]"
+    pattern8 = r"In the matter of (.+?) [\{\(\[]Appellant Landlord(?:s|\(s\))?[\)\}\]](?: and )?(.+?) [\{\(\[]Respondent Tenant(?:s|\(s\))?[\)\}\]]"
 
     # Try to find a match
     match1 = re.search(pattern1, text, re.IGNORECASE)
