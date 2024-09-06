@@ -6,12 +6,9 @@ from dateutil import parser
 import json
 import ollama
 
-input_folder = "data/converted_text/"
-
+input_folder = "data/converted_text/determinations"
 keywords_file = "reference/keywords.txt"
-
-# csv_output_file_path = "data/summary/case_details.csv"
-csv_output_file_path = "data/test/case_details.csv"
+csv_output_file_path = "data/summary/determination_details.csv"
 
 
 def get_file_paths(input_folder):
