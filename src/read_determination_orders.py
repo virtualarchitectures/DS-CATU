@@ -58,50 +58,50 @@ def extract_names(text):
     # If the first pattern doesn't match, try the second pattern
     if match1:
         # Extract the names for 'Applicant Tenant' and 'Respondent Landlord' using the first pattern
-        tenant_name = match1.group(1)
-        landlord_name = match1.group(2)
+        tenant_name = match1.group(1).strip()
+        landlord_name = match1.group(2).strip()
         tenant_role = "Applicant"
         landlord_role = "Respondent"
     elif match2:
         # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
-        landlord_name = match2.group(1)
-        tenant_name = match2.group(2)
+        landlord_name = match2.group(1).strip()
+        tenant_name = match2.group(2).strip()
         tenant_role = "Respondent"
         landlord_role = "Applicant"
     elif match3:
         # Extract the names for 'Applicant/Respondent Tenant' and 'Respondent/Applicant Landlord' using the third pattern
-        tenant_name = match3.group(1)
-        landlord_name = match3.group(2)
+        tenant_name = match3.group(1).strip()
+        landlord_name = match3.group(2).strip()
         tenant_role = "Applicant (Assumed)"
         landlord_role = "Respondent (Assumed)"
     elif match4:
         # Extract the names for 'Respondent/Applicant Landlord' and 'Applicant/Respondent Tenant' using the fourth pattern
-        landlord_name = match4.group(1)
-        tenant_name = match4.group(2)
+        landlord_name = match4.group(1).strip()
+        tenant_name = match4.group(2).strip()
         tenant_role = "Respondent (Assumed)"
         landlord_role = "Applicant (Assumed)"
     elif match5:
         # Extract the names for 'Tenant' and 'Landlord' using the fifth pattern
-        tenant_name = match5.group(1)
-        landlord_name = match5.group(2)
+        tenant_name = match5.group(1).strip()
+        landlord_name = match5.group(2).strip()
         tenant_role = "Applicant (Assumed)"
         landlord_role = "Respondent (Assumed)"
     elif match6:
         # Extract the names for 'Landlord' and 'Tenant' using the sixth pattern
-        landlord_name = match6.group(1)
-        tenant_name = match6.group(2)
+        landlord_name = match6.group(1).strip()
+        tenant_name = match6.group(2).strip()
         tenant_role = "Respondent (Assumed)"
         landlord_role = "Applicant (Assumed)"
     elif match7:
         # Extract the names for 'Appellant Tenant' and 'Respondent Landlord' using the first pattern
-        tenant_name = match7.group(1)
-        landlord_name = match7.group(2)
+        tenant_name = match7.group(1).strip()
+        landlord_name = match7.group(2).strip()
         tenant_role = "Applicant"
         landlord_role = "Respondent"
     elif match8:
         # Extract the names for 'Appellant Landlord' and 'Respondent Tenant' using the second pattern
-        landlord_name = match8.group(1)
-        tenant_name = match8.group(2)
+        landlord_name = match8.group(1).strip()
+        tenant_name = match8.group(2).strip()
         tenant_role = "Respondent"
         landlord_role = "Applicant"
     else:
