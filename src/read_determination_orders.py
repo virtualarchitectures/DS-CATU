@@ -217,7 +217,7 @@ def find_keywords(text):
     return matches
 
 
-def read_determination_orders(file_path):
+def read_determination_orders(file_path, address_method):
     # Extract the file name
     path, file_name = os.path.split(file_path)
     base_name, extension = os.path.splitext(file_name)
@@ -229,8 +229,11 @@ def read_determination_orders(file_path):
         # Extract Landlord and Tenant Names
         tenant_name, tenant_role, landlord_name, landlord_role = extract_names(text)
 
-        # Extract addresses
-        address = extract_address_ollama(text)
+        # Extract addresses based on the selected method
+        if address_method == "ollama":
+            address = extract_address_ollama(text)
+        else:
+            address = extract_address_regex(text)
 
         # Extract date
         date = extract_date(text)
@@ -256,7 +259,7 @@ def read_determination_orders(file_path):
             )
 
 
-def process_determination_orders(input_folder):
+def process_determination_orders(input_folder, address_method):
     file_paths = get_file_paths(input_folder)
 
     # Write CSV header
@@ -278,7 +281,7 @@ def process_determination_orders(input_folder):
 
     for file_path in file_paths:
         print(f"Processing: {file_path}")
-        read_determination_orders(file_path)
+        read_determination_orders(file_path, address_method)
 
 
-process_determination_orders(input_folder)
+process_determination_orders(input_folder, address_method="regex")
