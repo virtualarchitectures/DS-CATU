@@ -247,7 +247,6 @@ def read_determination_orders(file_path, address_method):
             csv_writer.writerow(
                 [
                     file_name,
-                    os.path.basename(file_path),
                     date,
                     keywords_list,
                     address,
@@ -267,8 +266,7 @@ def process_determination_orders(input_folder, address_method):
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(
             [
-                "Input Filename",
-                "Output Filename",
+                "Text Filename",
                 "Determination Date",
                 "Keywords",
                 "Address",
