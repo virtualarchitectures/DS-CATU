@@ -35,14 +35,15 @@ def extract_names(text):
     landlord_name = None
     tenant_role = None
     landlord_role = None
-
     # Define alternate regular expression patterns
-    pattern1 = r"In the matter of (.+?) [\(\[]Applicant Tenant[s]?[\)\]] and (.+?) [\(\[]Respondent Landlord[s]?[\)\]]"
-    pattern2 = r"In the matter of (.+?) [\(\[]Applicant Landlord[s]?[\)\]] and (.+?) [\(\[]Respondent Tenant[s]?[\)\]]"
-    pattern3 = r"In the matter of (.+?) [\(\[]Applicant/Respondent Tenant[s]?[\)\]] and (.+?) [\(\[]Respondent/Applicant Landlord[s]?[\)\]]"
-    pattern4 = r"In the matter of (.+?) [\(\[]Applicant/Respondent Landlord[s]?[\)\]] and (.+?) [\(\[]Respondent/Applicant Tenant[s]?[\)\]]"
-    pattern5 = r"In the matter of (.+?) [\(\[]Tenant[s]?[\)\]] and (.+?) [\(\[]Landlord[s]?[\)\]]"
-    pattern6 = r"In the matter of (.+?) [\(\[]Landlord[s]?[\)\]] and (.+?) [\(\[]Tenant[s]?[\)\]]"
+    pattern1 = r"In the matter of (.+?) [\(\[]Applicant Tenant(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Respondent Landlord(?:s|\(s\))?[\)\]]"
+    pattern2 = r"In the matter of (.+?) [\(\[]Applicant Landlord(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Respondent Tenant(?:s|\(s\))?[\)\]]"
+    pattern3 = r"In the matter of (.+?) [\(\[]Applicant/Respondent Tenant(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Respondent/Applicant Landlord(?:s|\(s\))?[\)\]]"
+    pattern4 = r"In the matter of (.+?) [\(\[]Applicant/Respondent Landlord(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Respondent/Applicant Tenant(?:s|\(s\))?[\)\]]"
+    pattern5 = r"In the matter of (.+?) [\(\[]Tenant(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Landlord(?:s|\(s\))?[\)\]]"
+    pattern6 = r"In the matter of (.+?) [\(\[]Landlord(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Tenant(?:s|\(s\))?[\)\]]"
+    pattern7 = r"In the matter of (.+?) [\(\[]Appellant Tenant(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Respondent Landlord(?:s|\(s\))?[\)\]]"
+    pattern8 = r"In the matter of (.+?) [\(\[]Appellant Landlord(?:s|\(s\))?[\)\]] and (.+?) [\(\[]Respondent Tenant(?:s|\(s\))?[\)\]]"
 
     # Try to find a match
     match1 = re.search(pattern1, text, re.IGNORECASE)
@@ -51,6 +52,8 @@ def extract_names(text):
     match4 = re.search(pattern4, text, re.IGNORECASE)
     match5 = re.search(pattern5, text, re.IGNORECASE)
     match6 = re.search(pattern6, text, re.IGNORECASE)
+    match7 = re.search(pattern7, text, re.IGNORECASE)
+    match8 = re.search(pattern8, text, re.IGNORECASE)
 
     # If the first pattern doesn't match, try the second pattern
     if match1:
@@ -89,6 +92,18 @@ def extract_names(text):
         tenant_name = match6.group(2)
         tenant_role = "Respondent (Assumed)"
         landlord_role = "Applicant (Assumed)"
+    elif match7:
+        # Extract the names for 'Appellant Tenant' and 'Respondent Landlord' using the first pattern
+        tenant_name = match7.group(1)
+        landlord_name = match7.group(2)
+        tenant_role = "Applicant"
+        landlord_role = "Respondent"
+    elif match8:
+        # Extract the names for 'Appellant Landlord' and 'Respondent Tenant' using the second pattern
+        landlord_name = match8.group(1)
+        tenant_name = match8.group(2)
+        tenant_role = "Respondent"
+        landlord_role = "Applicant"
     else:
         print("Unable to identify applicant and respondent!")
 
