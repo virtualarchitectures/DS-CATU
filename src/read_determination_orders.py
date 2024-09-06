@@ -44,8 +44,13 @@ def extract_names(text):
     pattern5 = r"In the matter of (.+?) [\(\[]Tenant[s]?[\)\]] and (.+?) [\(\[]Landlord[s]?[\)\]]"
     pattern6 = r"In the matter of (.+?) [\(\[]Landlord[s]?[\)\]] and (.+?) [\(\[]Tenant[s]?[\)\]]"
 
-    # Try to find a match using the first pattern
+    # Try to find a match
     match1 = re.search(pattern1, text, re.IGNORECASE)
+    match2 = re.search(pattern2, text, re.IGNORECASE)
+    match3 = re.search(pattern3, text, re.IGNORECASE)
+    match4 = re.search(pattern4, text, re.IGNORECASE)
+    match5 = re.search(pattern5, text, re.IGNORECASE)
+    match6 = re.search(pattern6, text, re.IGNORECASE)
 
     # If the first pattern doesn't match, try the second pattern
     if match1:
@@ -54,48 +59,38 @@ def extract_names(text):
         landlord_name = match1.group(2)
         tenant_role = "Applicant"
         landlord_role = "Respondent"
+    elif match2:
+        # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
+        landlord_name = match2.group(1)
+        tenant_name = match2.group(2)
+        tenant_role = "Respondent"
+        landlord_role = "Applicant"
+    elif match3:
+        # Extract the names for 'Applicant/Respondent Tenant' and 'Respondent/Applicant Landlord' using the third pattern
+        tenant_name = match3.group(1)
+        landlord_name = match3.group(2)
+        tenant_role = "Applicant (Assumed)"
+        landlord_role = "Respondent (Assumed)"
+    elif match4:
+        # Extract the names for 'Respondent/Applicant Landlord' and 'Applicant/Respondent Tenant' using the fourth pattern
+        landlord_name = match4.group(1)
+        tenant_name = match4.group(2)
+        tenant_role = "Respondent (Assumed)"
+        landlord_role = "Applicant (Assumed)"
+    elif match5:
+        # Extract the names for 'Tenant' and 'Landlord' using the fifth pattern
+        tenant_name = match5.group(1)
+        landlord_name = match5.group(2)
+        tenant_role = "Applicant (Assumed)"
+        landlord_role = "Respondent (Assumed)"
+    elif match6:
+        # Extract the names for 'Landlord' and 'Tenant' using the sixth pattern
+        landlord_name = match6.group(1)
+        tenant_name = match6.group(2)
+        tenant_role = "Respondent (Assumed)"
+        landlord_role = "Applicant (Assumed)"
     else:
-        match2 = re.search(pattern2, text, re.IGNORECASE)
-        if match2:
-            # Extract the names for 'Applicant Landlord' and 'Respondent Tenant' using the second pattern
-            landlord_name = match2.group(1)
-            tenant_name = match2.group(2)
-            tenant_role = "Respondent"
-            landlord_role = "Applicant"
-        else:
-            match3 = re.search(pattern3, text, re.IGNORECASE)
-            if match3:
-                # Extract the names for 'Applicant/Respondent Tenant' and 'Respondent/Applicant Landlord' using the third pattern
-                tenant_name = match3.group(1)
-                landlord_name = match3.group(2)
-                tenant_role = "Applicant (Assumed)"
-                landlord_role = "Respondent (Assumed)"
-            else:
-                match4 = re.search(pattern4, text, re.IGNORECASE)
-                if match4:
-                    # Extract the names for 'Respondent/Applicant Landlord' and 'Applicant/Respondent Tenant' using the fourth pattern
-                    landlord_name = match4.group(1)
-                    tenant_name = match4.group(2)
-                    tenant_role = "Respondent (Assumed)"
-                    landlord_role = "Applicant (Assumed)"
-                else:
-                    match5 = re.search(pattern5, text, re.IGNORECASE)
-                    if match5:
-                        # Extract the names for 'Tenant' and 'Landlord' using the fifth pattern
-                        tenant_name = match5.group(1)
-                        landlord_name = match5.group(2)
-                        tenant_role = "Applicant (Assumed)"
-                        landlord_role = "Respondent (Assumed)"
-                    else:
-                        match6 = re.search(pattern6, text, re.IGNORECASE)
-                        if match6:
-                            # Extract the names for 'Landlord' and 'Tenant' using the sixth pattern
-                            landlord_name = match6.group(1)
-                            tenant_name = match6.group(2)
-                            tenant_role = "Respondent (Assumed)"
-                            landlord_role = "Applicant (Assumed)"
-                        else:
-                            print("Unable to identify applicant and respondent!")
+        print("Unable to identify applicant and respondent!")
 
     print(f"Tenant: {tenant_name} / {tenant_role}")
     print(f"Landlord: {landlord_name} / {landlord_role}")
