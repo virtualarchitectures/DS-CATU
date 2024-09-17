@@ -7,9 +7,10 @@ output_folder = "data/summary/"
 
 # Load CSV files into pandas DataFrames
 df1 = pd.read_csv(f"{input_folder}case_metadata.csv")
-df2 = pd.read_csv(f"{input_folder}case_details.csv")
+df2 = pd.read_csv(f"{input_folder}determination_details.csv")
 
 
+# TODO: Fix filenames to faciltate join
 # Function to extract and decode filenames
 def normalize_filenames(name):
     if isinstance(name, str):  # Check if the value is a string
@@ -24,20 +25,21 @@ def normalize_filenames(name):
 df1["Determination Filename Decoded"] = df1["Determination PDF"].apply(
     normalize_filenames
 )
-df2["Input Filename Decoded"] = df2["Input Filename"].apply(normalize_filenames)
+df2["Text Filename Decoded"] = df2["Text Filename"].apply(normalize_filenames)
 
+# TODO: Validate join conditions
 # Merge DataFrames based on Determination order
 merged_df = pd.merge(
     df1,
     df2,
     left_on="Determination Filename Decoded",
-    right_on="Input Filename Decoded",
-    how="left",
+    right_on="Text Filename Decoded",
+    how="right",
 )
 
 # Drop the extra columns created during merge
 merged_df.drop("Determination Filename Decoded", axis=1, inplace=True)
-merged_df.drop("Input Filename Decoded", axis=1, inplace=True)
+merged_df.drop("Text Filename Decoded", axis=1, inplace=True)
 
 # Reorder columns, moving "Comments" column to the end
 columns = list(merged_df.columns)
