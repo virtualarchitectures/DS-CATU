@@ -1,6 +1,6 @@
+import os
 import urllib
 import pandas as pd
-import numpy as np
 
 input_folder = "data/summary/"
 output_folder = "data/summary/"
@@ -10,13 +10,14 @@ df1 = pd.read_csv(f"{input_folder}case_metadata.csv")
 df2 = pd.read_csv(f"{input_folder}determination_details.csv")
 
 
-# TODO: Fix filenames to faciltate join
 # Function to extract and decode filenames
 def normalize_filenames(name):
     if isinstance(name, str):  # Check if the value is a string
         # Extract filename and decode URL-encoded characters
         filename = urllib.parse.unquote_plus(name.split("/")[-1])
-        return filename.strip()  # Strip leading/trailing whitespace
+        # Remove file extension for join by filename
+        filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+        return filename_without_extension.strip()  # Strip leading/trailing whitespace
     else:
         return ""  # Return empty string
 
@@ -27,14 +28,13 @@ df1["Determination Filename Decoded"] = df1["Determination PDF"].apply(
 )
 df2["Text Filename Decoded"] = df2["Text Filename"].apply(normalize_filenames)
 
-# TODO: Validate join conditions
-# Merge DataFrames based on Determination order
+# Merge DataFrames based on file name of downloaded determination order text file
 merged_df = pd.merge(
     df1,
     df2,
     left_on="Determination Filename Decoded",
     right_on="Text Filename Decoded",
-    how="right",
+    how="left",
 )
 
 # Drop the extra columns created during merge
