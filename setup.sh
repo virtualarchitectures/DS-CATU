@@ -19,23 +19,16 @@ mkdir -p data/summary
 mkdir -p reference
 mkdir -p chromedriver
 
-# Initialise existing Conda installation if not already initialised
-eval "$(conda shell.bash hook)"
-
-# Install Miniconda if not installed
+# Check if conda command is available
 if ! command -v conda &> /dev/null; then
     echo "Installing Miniconda..."
-    # Make directory for Miniconda installation
-    mkdir -p ~/miniconda3 || error_exit "Failed to create Miniconda directory"
     # Download Miniconda installer
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh || error_exit "Failed to download Miniconda installer"
     # Run Miniconda installer
     bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3 || error_exit "Failed to install Miniconda"
-    # Remove Miniconda installer
-    rm -rf ~/miniconda3/miniconda.sh || error_exit "Failed to remove Miniconda installer"
+    # Initialize Miniconda for current shell session
+    source ~/miniconda3/etc/profile.d/conda.sh || error_exit "Failed to source Conda script"
     echo "Miniconda installed successfully and initialized"
-    # Initialise Miniconda
-    ~/miniconda3/bin/conda init bash
 else
     echo "Miniconda is already installed"
 fi
