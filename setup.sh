@@ -22,6 +22,8 @@ mkdir -p chromedriver
 # Check if conda command is available
 if ! command -v conda &> /dev/null; then
     echo "Installing Miniconda..."
+    # Make directory for Miniconda installation
+    mkdir -p ~/miniconda3 || error_exit "Failed to create Miniconda directory"
     # Download Miniconda installer
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh || error_exit "Failed to download Miniconda installer"
     # Run Miniconda installer
