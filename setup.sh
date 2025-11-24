@@ -35,6 +35,11 @@ else
     echo "Miniconda is already installed"
 fi
 
+# Accept Terms of Service for the required channels
+echo "Accepting Terms of Service for Anaconda channels..."
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main || error_exit "Failed to accept TOS for main channel"
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r || error_exit "Failed to accept TOS for R channel"
+
 # Create new Conda environment
 echo "Creating Conda environment '$ENV_NAME' with Python $PYTHON_VERSION..."
 conda create -y -n $ENV_NAME python=$PYTHON_VERSION || error_exit "Failed to create Conda environment"
