@@ -284,7 +284,7 @@ def get_search_results():
             print(f"Search URL: {search_url}")
             page.goto(search_url)
             page.wait_for_load_state("domcontentloaded")
-            # Handle cookie consent if present (unsure if this is still required)
+            # Handle cookie consent if present
             try:
                 cookie_button = page.locator("#onetrust-accept-btn-handler")
                 if cookie_button.count() > 0:
