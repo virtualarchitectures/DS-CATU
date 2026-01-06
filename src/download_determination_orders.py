@@ -173,23 +173,23 @@ def build_search_url(selected_year, selected_type):
         return base_url
 
 
-def perform_search(page, selected_year, selected_type):
+# def perform_search(page, selected_year, selected_type):
     
-    # Handle year selection if not "All"
-    if selected_year != "All":
-        year_combobox = page.get_by_role("combobox").first # .select_option(selected_year)
-        year_combobox.click() 
-        year_combobox.get_by_role("option", name=selected_year).dispatch_event('click')
+#     # Handle year selection if not "All"
+#     if selected_year != "All":
+#         year_combobox = page.get_by_role("combobox").first # .select_option(selected_year)
+#         year_combobox.click() 
+#         year_combobox.get_by_role("option", name=selected_year).dispatch_event('click')
     
-    # Handle type selection if not "All"
-    if selected_type != "all":
-        type_combobox = page.get_by_role("combobox").nth(2) # .select_option(selected_type)
-        type_combobox.click()
-        type_combobox.get_by_role("option", name=selected_type).dispatch_event('click')
+#     # Handle type selection if not "All"
+#     if selected_type != "all":
+#         type_combobox = page.get_by_role("combobox").nth(2) # .select_option(selected_type)
+#         type_combobox.click()
+#         type_combobox.get_by_role("option", name=selected_type).dispatch_event('click')
     
-    # Click search button
-    page.locator("#main-content").get_by_role("button", name="Search").click()
-    page.wait_for_load_state("domcontentloaded")
+#     # Click search button
+#     page.locator("#main-content").get_by_role("button", name="Search").click()
+#     page.wait_for_load_state("domcontentloaded")
 
 
 def extract_search_items(page):
@@ -203,6 +203,7 @@ def extract_search_items(page):
     # Get all article elements
     articles = container.locator("article").all()
     
+    locator_timeout=500
     for article in articles:
         item_data = {
             "Determination": False,
@@ -213,37 +214,37 @@ def extract_search_items(page):
         
         # Extract Title from h3
         try:
-            item_data["Title"] = article.get_by_role("heading").strip()
+            item_data["Title"] = article.get_by_role("heading").inner_text(timeout=locator_timeout).strip()
         except:
             item_data["Title"] = None
         
         # Extract Subject
         try:
-            page.pause()
             subject_span = article.locator('span:has-text("Subject of Dispute") + span')
-            item_data["Subject"] = subject_span.inner_text().strip()
+            item_data["Subject"] = subject_span.inner_text(timeout=locator_timeout).strip()
+
         except:
             item_data["Subject"] = None
         
         # Extract DR No.
         try:
             dr_span = article.locator('span:has-text("DR No.") + span')
-            item_data["DR No."] = dr_span.inner_text().strip()
+            item_data["DR No."] = dr_span.inner_text(timeout=locator_timeout).strip()
+
         except:
             item_data["DR No."] = None
         
         # Extract TR No.
         try:
             tr_span = article.locator('span:has-text("TR No.") + span')
-            item_data["TR No."] = tr_span.inner_text().strip()
+            item_data["TR No."] = tr_span.inner_text(timeout=locator_timeout).strip()
         except:
             item_data["TR No."] = None
         
         # Extract Upload Date
         try:
-            date_span = article.locator('span:has-text("Date") + span')
-            value = date_span.inner_text().strip()
-            parsed_date = parser.parse(value)
+            datetime = article.get_by_role('time').inner_text(timeout=locator_timeout).strip()
+            parsed_date = parser.parse(datetime)
             item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
         except:
             item_data["Upload Date"] = None
@@ -253,22 +254,24 @@ def extract_search_items(page):
         
         for link in pdf_links:
             href = link.get_attribute("href")
-            if href and "determination" in href.lower():
+            link_text = link.inner_text()
+            if href and "determination" in link_text.lower():
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = href
                 output_folder = os.path.join(pdf_folder, "determinations")
                 print(f"Downloading Determination PDF: {href}")
-                download_pdf(href, output_folder)
-                time.sleep(1)
-            elif href and "tribunal" in href.lower():
+                #download_pdf(href, output_folder)
+                #time.sleep(1)
+            elif href and "tribunal" in link_text.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = href
                 output_folder = os.path.join(pdf_folder, "tribunals")
                 print(f"Downloading Tribunal PDF: {href}")
-                download_pdf(href, output_folder)
-                time.sleep(1)
+                #download_pdf(href, output_folder)
+                #time.sleep(1)
         
-        data.append(item_data)
+        if item_data.get("Title") or item_data.get("Determination PDF") or item_data.get("Tribunal PDF"):
+            data.append(item_data)
     
     return data
 
@@ -276,7 +279,7 @@ def extract_search_items(page):
 def has_next_page(page):
     """Check if there's a next page by looking for '>>' link"""
     try:
-        next_link = page.get_by_role("link", name=">>", exact=True)
+        next_link = page.get_by_text(">>")
         return next_link.count() > 0
     except:
         return False
@@ -285,10 +288,10 @@ def has_next_page(page):
 def go_to_next_page(page):
     """Navigate to next page by clicking '>>' link"""
     try:
-        next_link = page.get_by_role("link", name=">>", exact=True)
+        next_link = page.get_by_text(">>")
         next_link.click()
-        page.wait_for_load_state("networkidle")
-        time.sleep(2)  # Additional wait for content to load
+        page.wait_for_load_state("domcontentloaded")
+
         return True
     except Exception as e:
         print(f"Error navigating to next page: {e}")
@@ -313,12 +316,13 @@ def get_search_results():
             ignore_https_errors=True
         )
         page = context.new_page()
-        
+
         try:
-            # build url
-            build_search_url(selected_year, selected_type)
-            
-            # Handle cookie consent if present
+            search_url=build_search_url(selected_year, selected_type)
+            print(f"Search URL: {search_url}")
+            page.goto(search_url)
+            page.wait_for_load_state("domcontentloaded")
+            # Handle cookie consent if present (unsure if this is still required)
             try:
                 cookie_button = page.locator("#onetrust-accept-btn-handler")
                 if cookie_button.count() > 0:
@@ -326,10 +330,7 @@ def get_search_results():
                     time.sleep(1)
             except:
                 pass
-            
-            # Perform search
-            perform_search(page, selected_year, selected_type)
-            
+
             # Process pages
             page_count = 1
             while True:
