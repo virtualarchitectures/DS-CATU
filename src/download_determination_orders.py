@@ -77,8 +77,7 @@ def download_pdf(pdf_link, output_folder, max_retries=2):
             return error
 
         # create the downloaded_pdfs folder if it doesn't exist
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        os.makedirs(output_folder, exist_ok=True)
 
         # download the PDF to the specified folder
         filename = pdf_link.split("/")[-1]
@@ -116,6 +115,9 @@ def write_to_csv(data):
     # clean the data
     cleaned_data = clean_data(data)
 
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(csv_output_file_path), exist_ok=True)
+
     # write data to CSV file
     with open(csv_output_file_path, mode="w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
@@ -132,25 +134,6 @@ def write_to_csv(data):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(cleaned_data)
-
-
-# def navigate_to_search_page(page):
-    # # Start at homepage
-    # page.goto("https://rtb.ie/")
-    # page.wait_for_load_state("domcontentloaded")
-    
-    # # Click "disputes" in nav
-    # page.locator("nav li").get_by_role("link", name="Disputes").click()
-    
-    # # Click "dispute outcomes and orders"
-    # page.get_by_role("link", name="Dispute outcomes and orders").click()
-    
-    # # Click "Adjudication and Tribunal orders"
-    # page.wait(1)
-    # orders_link = page.get_by_role("link", name="Adjudication and Tribunal orders")
-    # orders_link.click()
-    
-    # page.wait_for_load_state("domcontentloaded")
 
 def build_search_url(selected_year, selected_type):
     """Build search URL based on selected filters"""
@@ -171,26 +154,6 @@ def build_search_url(selected_year, selected_type):
         return base_url + "?" + "&".join(params)
     else:
         return base_url
-
-
-# def perform_search(page, selected_year, selected_type):
-    
-#     # Handle year selection if not "All"
-#     if selected_year != "All":
-#         year_combobox = page.get_by_role("combobox").first # .select_option(selected_year)
-#         year_combobox.click() 
-#         year_combobox.get_by_role("option", name=selected_year).dispatch_event('click')
-    
-#     # Handle type selection if not "All"
-#     if selected_type != "all":
-#         type_combobox = page.get_by_role("combobox").nth(2) # .select_option(selected_type)
-#         type_combobox.click()
-#         type_combobox.get_by_role("option", name=selected_type).dispatch_event('click')
-    
-#     # Click search button
-#     page.locator("#main-content").get_by_role("button", name="Search").click()
-#     page.wait_for_load_state("domcontentloaded")
-
 
 def extract_search_items(page):
     """Extract data from all article elements on current page"""
@@ -260,15 +223,14 @@ def extract_search_items(page):
                 item_data["Determination PDF"] = href
                 output_folder = os.path.join(pdf_folder, "determinations")
                 print(f"Downloading Determination PDF: {href}")
-                #download_pdf(href, output_folder)
-                #time.sleep(1)
+                download_pdf(href, output_folder)
+
             elif href and "tribunal" in link_text.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = href
                 output_folder = os.path.join(pdf_folder, "tribunals")
                 print(f"Downloading Tribunal PDF: {href}")
-                #download_pdf(href, output_folder)
-                #time.sleep(1)
+                download_pdf(href, output_folder)
         
         if item_data.get("Title") or item_data.get("Determination PDF") or item_data.get("Tribunal PDF"):
             data.append(item_data)
