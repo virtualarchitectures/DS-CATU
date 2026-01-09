@@ -8,9 +8,26 @@
 
 This notebook prepares the Colab environment and runs the tool to download RTB determination orders.
 
-NOTE: As of 24/11/2025 the Colab version is not working as intended due to challenges with the Selenium configuration. Possible fixes:
+NOTE: As of 24/11/2025 the Colab version is not working as intended and in the meantime it is recommended to run the program locally.
 
-1. Test a package like Google Colab Selenium: https://github.com/jpjacobpadilla/Google-Colab-Selenium
-2. Replace Selenium with Microsoft Playwright: https://github.com/microsoft/playwright
+## Running Locally
 
-In the meantime it is recommended to run the program locally.
+### Installation
+
+```
+pip install -r requirements.txt
+
+playwright install --with-deps
+
+```
+Chrome is required to run playwright
+
+### Downloading determination orders
+
+```
+python src/download_determination_orders.py
+
+```
+
+
+

@@ -48,6 +48,10 @@ def get_user_preferences():
         print("Invalid option selected.")
         exit()
 
+    if selected_year == "All" and selected_option == "All":
+        print("Error: Cannot select 'All' for both year and type. Please select at least one specific filter.")
+        exit()
+    
     selected_type = order_types[selected_option]
 
     return selected_year, selected_type
@@ -68,11 +72,12 @@ def download_pdf(pdf_link, output_folder, max_retries=2):
     try:
         # check if the PDF link returns a valid response
         response = session.head(pdf_link)
+        content_type = response.headers.get("content-type", "")
         if (
             response.status_code != 200
-            or "application/pdf" not in response.headers.get("content-type", "")
+            or "application/pdf" not in content_type
         ):
-            error = "Error: Unable to download PDF."
+            error = f"Error: Unable to download PDF.\nStatus Code: {response.status_code}\nContent-Type: {content_type}"
             print(error)
             return error
 
@@ -153,12 +158,12 @@ def build_search_url(selected_year, selected_type):
     if params:
         return base_url + "?" + "&".join(params)
     else:
-        return base_url
+        return base_url 
 
 def extract_search_items(page):
     """Extract data from all article elements on current page"""
     data = []
-    print("Extracting data from current page.")
+    print(f"{page.url}")
     
     # Find the container with search results
     container = page.locator('div[data-name="adjudication_orders_and_tribunal_orders_listing"]')
@@ -166,7 +171,7 @@ def extract_search_items(page):
     # Get all article elements
     articles = container.locator("article").all()
     
-    locator_timeout=500
+    locator_timeout=10
     for article in articles:
         item_data = {
             "Determination": False,
@@ -222,14 +227,12 @@ def extract_search_items(page):
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = href
                 output_folder = os.path.join(pdf_folder, "determinations")
-                print(f"Downloading Determination PDF: {href}")
                 download_pdf(href, output_folder)
 
             elif href and "tribunal" in link_text.lower():
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = href
                 output_folder = os.path.join(pdf_folder, "tribunals")
-                print(f"Downloading Tribunal PDF: {href}")
                 download_pdf(href, output_folder)
         
         if item_data.get("Title") or item_data.get("Determination PDF") or item_data.get("Tribunal PDF"):
@@ -239,9 +242,8 @@ def extract_search_items(page):
 
 
 def has_next_page(page):
-    """Check if there's a next page by looking for '>>' link"""
     try:
-        next_link = page.get_by_text(">>")
+        next_link = page.locator('a.facetwp-page.next')
         return next_link.count() > 0
     except:
         return False
@@ -250,9 +252,20 @@ def has_next_page(page):
 def go_to_next_page(page):
     """Navigate to next page by clicking '>>' link"""
     try:
-        next_link = page.get_by_text(">>")
-        next_link.click()
+        current_url = page.url
+        # # Set up listener for the 'refresh' request
+        with page.expect_response(
+            lambda response: "refresh" in response.url and response.status == 200,
+            timeout=10000
+        ) as response_info:
+            next_link = page.locator('a.facetwp-page.next')
+            next_link.click()
+
+        response_info.value
+
+        page.wait_for_url(lambda url: url != current_url, timeout=10000)
         page.wait_for_load_state("domcontentloaded")
+        time.sleep(1)
 
         return True
     except Exception as e:
@@ -270,20 +283,21 @@ def get_search_results():
     with sync_playwright() as p:
         # Launch browser
         browser = p.chromium.launch(
-                headless=False,
-                slow_mo=1
+                headless=True,
             )
         context = browser.new_context(
             bypass_csp=True,
             ignore_https_errors=True
         )
         page = context.new_page()
+        start_time = time.time()
 
         try:
             search_url=build_search_url(selected_year, selected_type)
             print(f"Search URL: {search_url}")
             page.goto(search_url)
             page.wait_for_load_state("domcontentloaded")
+            time.sleep(1)
             # Handle cookie consent if present
             try:
                 cookie_button = page.locator("#onetrust-accept-btn-handler")
@@ -296,7 +310,13 @@ def get_search_results():
             # Process pages
             page_count = 1
             while True:
-                print(f"Processing page {page_count}")
+                try:
+                    last_page_elem = page.locator('a.facetwp-page.last')
+                    last_page = last_page_elem.inner_text()
+                except:
+                    last_page = "?"
+
+                print(f"Processing page {page_count} out of {last_page}:")
                 
                 # Extract data from current page
                 data = extract_search_items(page)
@@ -304,14 +324,12 @@ def get_search_results():
                 
                 # Write results incrementally
                 write_to_csv(results)
-                print(f"Extracted {len(data)} items. Total: {len(results)}")
+                print(f"Extracted {len(data)} entries. Total: {len(results)}")
                 
                 # Check for next page
                 if has_next_page(page):
-                    print("Navigating to next page...")
-                    if not go_to_next_page(page):
-                        break
-                    page_count += 1
+                    if go_to_next_page(page):
+                        page_count += 1
                 else:
                     print("No more pages. Scraping complete.")
                     break
@@ -320,10 +338,22 @@ def get_search_results():
             print(f"Error during scraping: {e}")
         
         finally:
+            print(f"Total entries scraped: {len(results)}")
+            try:
+                expected_total_elem = page.locator('span[data-facetwp-total]')
+                expected_total = int(expected_total_elem.inner_text())
+                
+                if len(results) != expected_total:
+                    print(f"⚠ Warning: Scraped {len(results)} entries but expected {expected_total}")
+
+            except Exception as e:
+                print(f"Could not scraped entries match RTB's total: {e}")
+
             browser.close()
-            print("Browser closed.")
-    
-    print(f"Total items scraped: {len(results)}")
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Finished in: {elapsed_time:.2f} seconds ({elapsed_time/60:.2f} minutes)")
+
     print(f"Results saved to: {csv_output_file_path}")
 
 
