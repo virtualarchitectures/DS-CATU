@@ -4,17 +4,15 @@ import datetime
 from dateutil import parser
 import csv
 import requests
-import requests.utils
 from requests.adapters import HTTPAdapter, Retry
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 pdf_folder = "data/downloaded_pdfs/"
-
 csv_output_file_path = "data/summary/case_metadata.csv"
 
-# first year of available data
+# First year of available data
 start_year = 2015
-# get the current year for year list
+# Get the current year for year list
 current_year = datetime.datetime.now().year
 
 
@@ -24,7 +22,7 @@ def get_user_preferences():
     )
     selected_year = input("Enter your choice and press return: ").strip().capitalize()
 
-    # validate user input for time period
+    # Validate user input for time period
     if selected_year != "All" and (
         not selected_year.isdigit()
         or int(selected_year) < start_year
@@ -33,19 +31,19 @@ def get_user_preferences():
         print("Invalid time period selected.")
         exit()
 
-    # reference list for user input options
+    # Reference list for user input options
     order_types = {
         "Adjudication": "adjudication-order",
         "Tribunal": "tribunal-order",
         "All": "adjudication-order|tribunal-order",
     }
 
-    # prompt the user to select the dispute outcome type
+    # Prompt the user to select the dispute outcome type
     options_text = " | ".join(order_types.keys())
     print(f"Select the dispute outcome type ({options_text}).")
     selected_option = input("Enter your choice and press return: ").strip().capitalize()
 
-    # validate user input
+    # Validate user input
     if selected_option not in order_types:
         print("Invalid option selected.")
         exit()
@@ -53,20 +51,6 @@ def get_user_preferences():
     selected_type = order_types[selected_option]
 
     return selected_year, selected_type
-
-
-def generate_search_url(page_no, selected_year, order_type):
-    base_url = "https://rtb.ie/disputes/dispute-outcomes-and-orders/adjudication-and-tribunal-orders/"
-
-    # build query parameters
-    params = []
-    if selected_year != "All":
-        params.append(f"_adjudication_orders_and_tribunal_orders_date={selected_year}")
-    params.append(f"_adjudication_orders_and_tribunal_orders_post_type={order_type}")
-    params.append(f"_paged={page_no}")
-
-    search_url = base_url + "?" + "&".join(params)
-    return search_url
 
 
 def download_pdf(pdf_link, output_folder, max_retries=2):
@@ -82,25 +66,25 @@ def download_pdf(pdf_link, output_folder, max_retries=2):
     session.mount("https://", adapter)
 
     try:
-        # check if the PDF link returns a valid response
+        # Check if the PDF link returns a valid response
         response = session.head(pdf_link)
+        content_type = response.headers.get("content-type", "")
         if (
             response.status_code != 200
-            or "application/pdf" not in response.headers.get("content-type", "")
+            or "application/pdf" not in content_type
         ):
-            error = "Error: Unable to download PDF."
+            error = f"Error: Unable to download PDF.\nStatus Code: {response.status_code}\nContent-Type: {content_type}"
             print(error)
             return error
 
-        # create the downloaded_pdfs folder if it doesn't exist
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        # Create the downloaded_pdfs folder if it doesn't exist
+        os.makedirs(output_folder, exist_ok=True)
 
-        # download the PDF to the specified folder
+        # Download the PDF to the specified folder
         filename = pdf_link.split("/")[-1]
         filepath = os.path.join(output_folder, filename)
 
-        # use requests to download the PDF
+        # Use requests to download the PDF
         response = session.get(pdf_link)
         with open(filepath, "wb") as f:
             f.write(response.content)
@@ -116,7 +100,7 @@ def clean_data(data):
     for item in data:
         cleaned_item = {
             key: (
-                # replace hidden characters
+                # Replace hidden characters
                 value.replace("\xa0", " ").replace("\u2019", "'")
                 if isinstance(value, str)
                 else value
@@ -129,13 +113,13 @@ def clean_data(data):
 
 
 def write_to_csv(data):
-    # clean the data
+    # Clean the data
     cleaned_data = clean_data(data)
 
-    # create the output directory if it doesn't exist
+    # Create the output directory if it doesn't exist
     os.makedirs(os.path.dirname(csv_output_file_path), exist_ok=True)
 
-    # write data to CSV file
+    # Write data to CSV file
     with open(csv_output_file_path, mode="w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             "Title",
@@ -147,105 +131,149 @@ def write_to_csv(data):
             "Tribunal",
             "TR No.",
             "Tribunal PDF",
-            "Comments",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(cleaned_data)
 
+def build_search_url(selected_year, order_type):
+    """Build search URL based on selected filters"""
+    base_url = "https://rtb.ie/disputes/dispute-outcomes-and-orders/adjudication-and-tribunal-orders/"
 
-def get_search_items(page):
+    params = []
+
+    # Add year parameter if not "All"
+    if selected_year != "All":
+        params.append(f"_adjudication_orders_and_tribunal_orders_date={selected_year}")
+    params.append(f"_adjudication_orders_and_tribunal_orders_post_type={order_type}")
+
+    search_url = base_url + "?" + "&".join(params)
+    return search_url
+
+def extract_search_items(page):
+    """Extract data from all article elements on current page"""
     data = []
-    print("Extracting data.")
-    # get items on the current page
-    search_items = page.query_selector_all(".adjudication-orders-and-tribunal-orders-item")
+    print(f"Extracting data from: {page.url}")
 
-    for i in search_items:
-        # initialise variable defaults
-        item_data = {}
-        item_data["Determination"] = False
-        item_data["Determination PDF"] = None
-        item_data["Tribunal"] = False
-        item_data["Tribunal PDF"] = None
+    # Find the container with search results using Locator API
+    container = page.locator('div[data-name="adjudication_orders_and_tribunal_orders_listing"]')
 
-        # get the card title
+    # Get all article elements
+    articles = container.locator("article").all()
+
+    locator_timeout = 10
+    for article in articles:
+        item_data = {
+            "Determination": False,
+            "Determination PDF": None,
+            "Tribunal": False,
+            "Tribunal PDF": None,
+        }
+
+        # Extract Title from h3
         try:
-            title_elem = i.query_selector("h3.heading-xs")
-            item_data["Title"] = title_elem.inner_text().strip() if title_elem else None
+            item_data["Title"] = article.get_by_role("heading").inner_text(timeout=locator_timeout).strip()
         except:
             item_data["Title"] = None
 
-        # get the card details from field elements
-        fields = i.query_selector_all(".field")
-        for field in fields:
-            try:
-                label_elem = field.query_selector(".data.label")
-                if not label_elem:
-                    continue
-                label_text = label_elem.inner_text().strip()
+        # Extract Subject
+        try:
+            subject_span = article.locator('span:has-text("Subject of Dispute") + span')
+            item_data["Subject"] = subject_span.inner_text(timeout=locator_timeout).strip()
+        except:
+            item_data["Subject"] = None
 
-                if label_text == "Subject of Dispute":
-                    value_elem = field.query_selector(".data:not(.label)")
-                    item_data["Subject"] = value_elem.inner_text().strip() if value_elem else None
+        # Extract DR No.
+        try:
+            dr_span = article.locator('span:has-text("DR No.") + span')
+            item_data["DR No."] = dr_span.inner_text(timeout=locator_timeout).strip()
+        except:
+            item_data["DR No."] = None
 
-                elif label_text == "DR No.":
-                    value_elem = field.query_selector(".data:not(.label)")
-                    item_data["DR No."] = value_elem.inner_text().strip() if value_elem else None
+        # Extract TR No.
+        try:
+            tr_span = article.locator('span:has-text("TR No.") + span')
+            item_data["TR No."] = tr_span.inner_text(timeout=locator_timeout).strip()
+        except:
+            item_data["TR No."] = None
 
-                elif label_text == "TR No.":
-                    value_elem = field.query_selector(".data:not(.label)")
-                    item_data["TR No."] = value_elem.inner_text().strip() if value_elem else None
+        # Extract Upload Date
+        try:
+            datetime_text = article.get_by_role('time').inner_text(timeout=locator_timeout).strip()
+            parsed_date = parser.parse(datetime_text)
+            item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
+        except:
+            item_data["Upload Date"] = None
 
-                elif label_text == "Date":
-                    # Date is in a <time> element
-                    time_elem = field.query_selector("time")
-                    if time_elem:
-                        value = time_elem.inner_text().strip()
-                        # Standardize date format using dateutil parser
-                        parsed_date = parser.parse(value)
-                        item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
-            except:
-                pass
+        # TODO: Add download of DOCX documents
+        # TODO: Make file download optional (can be handled by a separate batch script)
+        # Extract PDF links
+        pdf_links = article.locator("a[href]").all()
 
-        # get pdf information
-        download_links = i.query_selector_all("a.download-link")
-        for link in download_links:
-            pdf_link = link.get_attribute("href")
-            link_text = link.inner_text().lower()
-
-            # TODO: Add download of DOCX documents
-            # TODO: Make file download optional (can be handled by a separate batch script)
-            # extract determination and tribunal order information
-            if "determination" in link_text:
+        for link in pdf_links:
+            href = link.get_attribute("href")
+            link_text = link.inner_text()
+            if href and "determination" in link_text.lower():
                 item_data["Determination"] = True
-                item_data["Determination PDF"] = pdf_link
+                item_data["Determination PDF"] = href
                 output_folder = os.path.join(pdf_folder, "determinations")
-                # download pdf
-                print(f"Downloading PDF: {pdf_link}")
-                download_pdf(pdf_link, output_folder)
-                time.sleep(1)
-            elif "tribunal" in link_text:
-                item_data["Tribunal"] = True
-                item_data["Tribunal PDF"] = pdf_link
-                output_folder = os.path.join(pdf_folder, "tribunals")
-                # download pdf
-                print(f"Downloading PDF: {pdf_link}")
-                download_pdf(pdf_link, output_folder)
-                time.sleep(1)
+                print(f"Downloading PDF: {href}")
+                download_pdf(href, output_folder)
 
-        # append the data to the list
-        data.append(item_data)
+            elif href and "tribunal" in link_text.lower():
+                item_data["Tribunal"] = True
+                item_data["Tribunal PDF"] = href
+                output_folder = os.path.join(pdf_folder, "tribunals")
+                print(f"Downloading PDF: {href}")
+                download_pdf(href, output_folder)
+
+        if item_data.get("Title") or item_data.get("Determination PDF") or item_data.get("Tribunal PDF"):
+            data.append(item_data)
 
     return data
 
 
+def has_next_page(page):
+    """Check if there's a next page link"""
+    try:
+        next_link = page.locator('a.facetwp-page.next')
+        return next_link.count() > 0
+    except:
+        return False
+
+
+def go_to_next_page(page):
+    """Navigate to next page by clicking next link"""
+    try:
+        current_url = page.url
+        # Set up listener for the 'refresh' request
+        with page.expect_response(
+            lambda response: "refresh" in response.url and response.status == 200,
+            timeout=10000
+        ) as response_info:
+            next_link = page.locator('a.facetwp-page.next')
+            next_link.click()
+
+        response_info.value
+
+        page.wait_for_url(lambda url: url != current_url, timeout=10000)
+        page.wait_for_load_state("domcontentloaded")
+        time.sleep(1)
+
+        return True
+    except Exception as e:
+        print(f"Error navigating to next page: {e}")
+        return False
+
+
 def get_search_results():
+    """Main function to scrape RTB website"""
     results = []
 
-    # get user input
+    # Get user input
     selected_year, selected_type = get_user_preferences()
 
-    # disaggregate searches for 'All' years
+    # Disaggregate searches for 'All' years
     if selected_year == "All":
         year_list = [year for year in range(start_year, current_year + 1)]
     else:
@@ -260,74 +288,94 @@ def get_search_results():
         order_list = [selected_type]
 
     with sync_playwright() as p:
-        # launch Chromium browser (headless=False to see the browser)
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
+        # Launch browser
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            bypass_csp=True,
+            ignore_https_errors=True
+        )
+        page = context.new_page()
+        start_time = time.time()
 
-        for year in year_list:
-            selected_year = year
+        try:
+            for year in year_list:
+                selected_year = year
 
-            for order_type in order_list:
+                for order_type in order_list:
+                    url = build_search_url(selected_year, order_type)
+                    print(f"Search URL: {url}")
+                    page.goto(url)
+                    page.wait_for_load_state("domcontentloaded")
+                    time.sleep(1)
 
-                # load initial search page for this year/order_type
-                url = generate_search_url(1, selected_year, order_type)
-                print(f"Querying URL: {url}")
-                page.goto(url)
+                    # Handle cookie consent if present
+                    try:
+                        cookie_button = page.locator("#onetrust-accept-btn-handler")
+                        if cookie_button.count() > 0:
+                            cookie_button.click()
+                            time.sleep(1)
+                    except:
+                        pass
 
-                try:
-                    # wait for result items to be present
-                    page.wait_for_selector(".adjudication-orders-and-tribunal-orders-item", timeout=20000)
-                except PlaywrightTimeoutError:
-                    # no results found, move to next year/order_type
-                    print("No results found.")
-                    continue
+                    try:
+                        # wait for result items to be present
+                        page.wait_for_selector(".adjudication-orders-and-tribunal-orders-item", timeout=20000)
+                    except PlaywrightTimeoutError:
+                        # no results found, move to next year/order_type
+                        print("No results found.")
+                        continue
 
-                # TODO: Is this still required?
-                # wait for cookies notification
-                time.sleep(2)
-
-                # TODO: Is this still required?
-                try:
-                    # click on the privacy popup button
-                    page.click("#onetrust-accept-btn-handler", timeout=2000)
-                    time.sleep(2)
-                except:
-                    pass
-
-                # get total pages from pager
-                last_page_elem = page.query_selector(".facetwp-page.last")
-                if last_page_elem:
-                    total_pages = int(last_page_elem.get_attribute("data-page"))
+                    # get total pages from pager using Locator API
+                    try:
+                        last_page_elem = page.locator('a.facetwp-page.last')
+                        total_pages = int(last_page_elem.inner_text())
+                    except:
+                        total_pages = 1
                     print(f"Total pages: {total_pages}")
-                else:
-                    total_pages = 1
 
-                current_page = 1
-                while True:
-                    print(f"Processing page {current_page} of {total_pages}")
+                    current_page = 1
+                    while True:
+                        print(f"Processing page {current_page} of {total_pages}")
 
-                    # Get the search items for the current page
-                    data = get_search_items(page)
-                    # Add the data to the results
-                    results.extend(data)
+                        # Extract data from current page
+                        data = extract_search_items(page)
+                        results.extend(data)
 
-                    # Incrementally write results to CSV
-                    write_to_csv(results)
+                        # Write results incrementally
+                        write_to_csv(results)
+                        print(f"Extracted {len(data)} entries. Total: {len(results)}")
 
-                    # Check if there's a next page
-                    next_button = page.query_selector(".facetwp-page.next")
-                    if not next_button or current_page >= total_pages:
-                        break
+                        # Check if there's a next page
+                        if has_next_page(page):
+                            if go_to_next_page(page):
+                                current_page += 1
+                            else:
+                                break
+                        else:
+                            print("No more pages for this search.")
+                            break
 
-                    # Click next button and wait for content to update
-                    next_button.click()
-                    time.sleep(2)
-                    # Wait for the page content to refresh
-                    page.wait_for_selector(".adjudication-orders-and-tribunal-orders-item", timeout=20000)
-                    current_page += 1
+        except Exception as e:
+            print(f"Error during scraping: {e}")
 
-        browser.close()
-        print("Closed Chromium browser.")
+        finally:
+            print(f"Total entries scraped: {len(results)}")
+            # Validate results count against expected total
+            try:
+                expected_total_elem = page.locator('span[data-facetwp-total]')
+                expected_total = int(expected_total_elem.inner_text())
+                
+                if len(results) != expected_total:
+                    print(f"Warning: Scraped {len(results)} entries but expected {expected_total}")
+            except:
+                pass
+
+            browser.close()
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Finished in: {elapsed_time:.2f} seconds ({elapsed_time/60:.2f} minutes)")
+
+    print(f"Results saved to: {csv_output_file_path}")
 
 
 if __name__ == "__main__":
