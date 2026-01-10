@@ -1,6 +1,6 @@
 pandas
 pdf2image
 pytesseract
-selenium
+playwright
 requests
 python-dotenv
