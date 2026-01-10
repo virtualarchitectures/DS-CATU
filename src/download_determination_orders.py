@@ -6,12 +6,7 @@ import csv
 import requests
 import requests.utils
 from requests.adapters import HTTPAdapter, Retry
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 pdf_folder = "data/downloaded_pdfs/"
 
@@ -40,9 +35,9 @@ def get_user_preferences():
 
     # reference list for user input options
     order_types = {
-        "Adjudication": "adjudication_orders",
-        "Tribunal": "tribunal_orders",
-        "All": "adjudication_orders|tribunal_orders",
+        "Adjudication": "adjudication-order",
+        "Tribunal": "tribunal-order",
+        "All": "adjudication-order|tribunal-order",
     }
 
     # prompt the user to select the dispute outcome type
@@ -61,17 +56,16 @@ def get_user_preferences():
 
 
 def generate_search_url(page_no, selected_year, order_type):
-    # convert string to int
-    page = str(page_no)
+    base_url = "https://rtb.ie/disputes/dispute-outcomes-and-orders/adjudication-and-tribunal-orders/"
 
-    # generate the search URL based on the selected option and time period
-    if selected_year == "All":
-        search_url = (
-            f"https://www.rtb.ie/search-results/listing/P{page}?collection={order_type}"
-        )
-    else:
-        search_url = f"https://www.rtb.ie/search-results/listing/P{page}?year={selected_year}&collection={order_type}"
+    # build query parameters
+    params = []
+    if selected_year != "All":
+        params.append(f"_adjudication_orders_and_tribunal_orders_date={selected_year}")
+    params.append(f"_adjudication_orders_and_tribunal_orders_post_type={order_type}")
+    params.append(f"_paged={page_no}")
 
+    search_url = base_url + "?" + "&".join(params)
     return search_url
 
 
@@ -80,7 +74,7 @@ def download_pdf(pdf_link, output_folder, max_retries=2):
     retry_strategy = Retry(
         total=max_retries,
         status_forcelist=[500, 502, 503, 504],
-        method_whitelist=["HEAD", "GET"],
+        allowed_methods=["HEAD", "GET"],
         backoff_factor=2,
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -138,6 +132,9 @@ def write_to_csv(data):
     # clean the data
     cleaned_data = clean_data(data)
 
+    # create the output directory if it doesn't exist
+    os.makedirs(os.path.dirname(csv_output_file_path), exist_ok=True)
+
     # write data to CSV file
     with open(csv_output_file_path, mode="w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
@@ -157,11 +154,11 @@ def write_to_csv(data):
         writer.writerows(cleaned_data)
 
 
-def get_search_items(driver):
+def get_search_items(page):
     data = []
     print("Extracting data.")
     # get items on the current page
-    search_items = driver.find_elements(By.CLASS_NAME, "card-list--had-downloadable")
+    search_items = page.query_selector_all(".adjudication-orders-and-tribunal-orders-item")
 
     for i in search_items:
         # initialise variable defaults
@@ -173,78 +170,66 @@ def get_search_items(driver):
 
         # get the card title
         try:
-            item_data["Title"] = i.find_element(
-                By.CLASS_NAME, "card-list__title"
-            ).text.strip()
+            title_elem = i.query_selector("h3.heading-xs")
+            item_data["Title"] = title_elem.inner_text().strip() if title_elem else None
         except:
             item_data["Title"] = None
 
-        # get the card details
-        headings = i.find_elements(By.CLASS_NAME, "card-list__heading")
-        # loop through headings
-        for heading in headings:
-            heading_text = heading.text.strip()
+        # get the card details from field elements
+        fields = i.query_selector_all(".field")
+        for field in fields:
+            try:
+                label_elem = field.query_selector(".data.label")
+                if not label_elem:
+                    continue
+                label_text = label_elem.inner_text().strip()
 
-            if heading_text == "Subject of Dispute":
-                try:
-                    item_data["Subject"] = heading.find_element(
-                        By.XPATH, "following-sibling::p"
-                    ).text.strip()
-                except:
-                    item_data["Subject"] = None
+                if label_text == "Subject of Dispute":
+                    value_elem = field.query_selector(".data:not(.label)")
+                    item_data["Subject"] = value_elem.inner_text().strip() if value_elem else None
 
-            elif heading_text == "DR No.":
-                try:
-                    item_data["DR No."] = heading.find_element(
-                        By.XPATH, "following-sibling::p"
-                    ).text.strip()
-                except:
-                    item_data["DR No."] = None
+                elif label_text == "DR No.":
+                    value_elem = field.query_selector(".data:not(.label)")
+                    item_data["DR No."] = value_elem.inner_text().strip() if value_elem else None
 
-            elif heading_text == "TR No.":
-                try:
-                    item_data["TR No."] = heading.find_element(
-                        By.XPATH, "following-sibling::p"
-                    ).text.strip()
-                except:
-                    item_data["TR No."] = None
+                elif label_text == "TR No.":
+                    value_elem = field.query_selector(".data:not(.label)")
+                    item_data["TR No."] = value_elem.inner_text().strip() if value_elem else None
 
-            elif heading_text == "Date":
-                try:
-                    value = heading.find_element(
-                        By.XPATH, "following-sibling::p"
-                    ).text.strip()
-                    # Standardize date format using dateutil parser
-                    parsed_date = parser.parse(value)
-                    item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
-                except:
-                    item_data["Upload Date"] = None
+                elif label_text == "Date":
+                    # Date is in a <time> element
+                    time_elem = field.query_selector("time")
+                    if time_elem:
+                        value = time_elem.inner_text().strip()
+                        # Standardize date format using dateutil parser
+                        parsed_date = parser.parse(value)
+                        item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
+            except:
+                pass
 
         # get pdf information
-        download_cards = i.find_elements(
-            By.CLASS_NAME, "download-card.download-card--in-card"
-        )
-        for card in download_cards:
-            pdf_link = card.get_attribute("href")
-            pdf_type = card.find_element(
-                By.CLASS_NAME, "download-card__title"
-            ).get_attribute("innerText")
+        download_links = i.query_selector_all("a.download-link")
+        for link in download_links:
+            pdf_link = link.get_attribute("href")
+            link_text = link.inner_text().lower()
 
             # extract determination and tribunal order information
-            if "determination" in pdf_type.lower():
+            if "determination" in link_text:
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = pdf_link
                 output_folder = os.path.join(pdf_folder, "determinations")
-            elif "tribunal" in pdf_type.lower():
+                # download pdf
+                print(f"Downloading PDF: {pdf_link}")
+                download_pdf(pdf_link, output_folder)
+                time.sleep(1)
+            elif "tribunal" in link_text:
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = pdf_link
                 output_folder = os.path.join(pdf_folder, "tribunals")
-
-            # download pdf
-            print(f"Downloading PDF: {pdf_link}")
-            download_pdf(pdf_link, output_folder)
-            # pause between downloads
-            time.sleep(1)
+                # download pdf
+                print(f"Downloading PDF: {pdf_link}")
+                download_pdf(pdf_link, output_folder)
+                time.sleep(1)
 
         # append the data to the list
         data.append(item_data)
@@ -252,23 +237,11 @@ def get_search_items(driver):
     return data
 
 
-def get_search_results(starting_page=0):
+def get_search_results():
     results = []
-    # set starting page number
-    page_no = starting_page
 
     # get user input
     selected_year, selected_type = get_user_preferences()
-
-    # set options for running Selenium
-    chrome_options = Options()
-    # chrome_options.add_argument("--headless")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option("useAutomationExtension", False)
-    chrome_options.add_experimental_option("detach", True)
-
-    # initialise the Chrome webdriver
-    driver = webdriver.Chrome(options=chrome_options)
 
     # disaggregate searches for 'All' years
     if selected_year == "All":
@@ -277,65 +250,79 @@ def get_search_results(starting_page=0):
         year_list = [selected_year]
 
     # disaggregate searches for 'All' order types
-    if selected_type == "adjudication_orders|tribunal_orders":
-        order_list = ["adjudication_orders", "tribunal_orders"]
+    if selected_type == "adjudication-order|tribunal-order":
+        order_list = ["adjudication-order", "tribunal-order"]
     else:
         order_list = [selected_type]
 
-    for year in year_list:
-        selected_year = year
+    with sync_playwright() as p:
+        # launch Chromium browser (headless=False to see the browser)
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
 
-        for order_type in order_list:
+        for year in year_list:
+            selected_year = year
 
-            while True:
-                # generate search url from user input
-                url = generate_search_url(page_no, selected_year, order_type)
+            for order_type in order_list:
 
-                # print url
+                # load initial search page for this year/order_type
+                url = generate_search_url(1, selected_year, order_type)
                 print(f"Querying URL: {url}")
+                page.goto(url)
 
-                # open the web page
-                driver.get(url)
-
-                # wait for the page to load completely
-                wait = WebDriverWait(driver, 20)
                 try:
-                    # check for downloadable data
-                    wait.until(
-                        EC.presence_of_element_located(
-                            (By.CLASS_NAME, "card-list--had-downloadable")
-                        )
-                    )
-                except TimeoutException:
-                    # reset page number and break
-                    page_no = 0
-                    break
+                    # wait for result items to be present
+                    page.wait_for_selector(".adjudication-orders-and-tribunal-orders-item", timeout=20000)
+                except PlaywrightTimeoutError:
+                    # no results found, move to next year/order_type
+                    print("No results found.")
+                    continue
 
                 # wait for cookies notification
                 time.sleep(2)
 
                 try:
                     # click on the privacy popup button
-                    privacy_button = driver.find_element(
-                        By.ID, "onetrust-accept-btn-handler"
-                    ).click()
+                    page.click("#onetrust-accept-btn-handler", timeout=2000)
                     time.sleep(2)
                 except:
                     pass
 
-                # Get the search items for the current page
-                data = get_search_items(driver)
-                # Add the data to the results
-                results.extend(data)
+                # get total pages from pager
+                last_page_elem = page.query_selector(".facetwp-page.last")
+                if last_page_elem:
+                    total_pages = int(last_page_elem.get_attribute("data-page"))
+                    print(f"Total pages: {total_pages}")
+                else:
+                    total_pages = 1
 
-                # Incrementally write results to CSV
-                write_to_csv(results)
+                current_page = 1
+                while True:
+                    print(f"Processing page {current_page} of {total_pages}")
 
-                # Increment the page number by 10 for the next page
-                page_no += 10
+                    # Get the search items for the current page
+                    data = get_search_items(page)
+                    # Add the data to the results
+                    results.extend(data)
 
-    driver.close()
-    print("Closed Chromium Driver.")
+                    # Incrementally write results to CSV
+                    write_to_csv(results)
+
+                    # Check if there's a next page
+                    next_button = page.query_selector(".facetwp-page.next")
+                    if not next_button or current_page >= total_pages:
+                        break
+
+                    # Click next button and wait for content to update
+                    next_button.click()
+                    time.sleep(2)
+                    # Wait for the page content to refresh
+                    page.wait_for_selector(".adjudication-orders-and-tribunal-orders-item", timeout=20000)
+                    current_page += 1
+
+        browser.close()
+        print("Closed Chromium browser.")
 
 
-get_search_results(starting_page=0)
+if __name__ == "__main__":
+    get_search_results()
