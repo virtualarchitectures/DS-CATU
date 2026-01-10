@@ -53,7 +53,13 @@ def get_user_preferences():
     return selected_year, selected_type
 
 
-def download_pdf(pdf_link, output_folder, max_retries=2):
+SUPPORTED_CONTENT_TYPES = {
+    "application/pdf": ".pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+}
+
+
+def download_file(file_link, output_folder, max_retries=2):
     session = requests.Session()
     retry_strategy = Retry(
         total=max_retries,
@@ -66,32 +72,34 @@ def download_pdf(pdf_link, output_folder, max_retries=2):
     session.mount("https://", adapter)
 
     try:
-        # Check if the PDF link returns a valid response
-        response = session.head(pdf_link)
-        content_type = response.headers.get("content-type", "")
-        if (
-            response.status_code != 200
-            or "application/pdf" not in content_type
-        ):
-            error = f"Error: Unable to download PDF.\nStatus Code: {response.status_code}\nContent-Type: {content_type}"
+        # Check if the file link returns a valid response
+        response = session.head(file_link)
+        content_type = response.headers.get("content-type", "").split(";")[0].strip()
+        if response.status_code != 200:
+            error = f"Error: Unable to download file.\nStatus Code: {response.status_code}"
             print(error)
             return error
 
-        # Create the downloaded_pdfs folder if it doesn't exist
+        if content_type not in SUPPORTED_CONTENT_TYPES:
+            error = f"Error: Unsupported content type: {content_type}"
+            print(error)
+            return error
+
+        # Create the output folder if it doesn't exist
         os.makedirs(output_folder, exist_ok=True)
 
-        # Download the PDF to the specified folder
-        filename = pdf_link.split("/")[-1]
+        # Download the file to the specified folder
+        filename = file_link.split("/")[-1]
         filepath = os.path.join(output_folder, filename)
 
-        # Use requests to download the PDF
-        response = session.get(pdf_link)
+        # Use requests to download the file
+        response = session.get(file_link)
         with open(filepath, "wb") as f:
             f.write(response.content)
 
         return filepath
     except requests.exceptions.RequestException as e:
-        print(f"Error downloading PDF: {e}")
+        print(f"Error downloading file: {e}")
         return None
 
 
@@ -205,27 +213,26 @@ def extract_search_items(page):
         except:
             item_data["Upload Date"] = None
 
-        # TODO: Add download of DOCX documents
         # TODO: Make file download optional (can be handled by a separate batch script)
-        # Extract PDF links
-        pdf_links = article.locator("a[href]").all()
+        # Extract document links (PDF and DOCX)
+        doc_links = article.locator("a[href]").all()
 
-        for link in pdf_links:
+        for link in doc_links:
             href = link.get_attribute("href")
-            link_text = link.inner_text()
-            if href and "determination" in link_text.lower():
+            link_text = link.inner_text().lower()
+            if href and "determination" in link_text:
                 item_data["Determination"] = True
                 item_data["Determination PDF"] = href
                 output_folder = os.path.join(pdf_folder, "determinations")
-                print(f"Downloading PDF: {href}")
-                download_pdf(href, output_folder)
+                print(f"Downloading file: {href}")
+                download_file(href, output_folder)
 
-            elif href and "tribunal" in link_text.lower():
+            elif href and "tribunal" in link_text:
                 item_data["Tribunal"] = True
                 item_data["Tribunal PDF"] = href
                 output_folder = os.path.join(pdf_folder, "tribunals")
-                print(f"Downloading PDF: {href}")
-                download_pdf(href, output_folder)
+                print(f"Downloading file: {href}")
+                download_file(href, output_folder)
 
         if item_data.get("Title") or item_data.get("Determination PDF") or item_data.get("Tribunal PDF"):
             data.append(item_data)
