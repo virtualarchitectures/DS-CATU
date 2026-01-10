@@ -49,7 +49,12 @@ def get_user_preferences():
 
     selected_type = order_types[selected_option]
 
-    return selected_year, selected_type
+    # Prompt for file download preference
+    print("Download document files? (Yes | No)")
+    download_input = input("Enter your choice and press return: ").strip().capitalize()
+    download_files = download_input in ["Yes", "Y"]
+
+    return selected_year, selected_type, download_files
 
 
 SUPPORTED_CONTENT_TYPES = {
@@ -157,7 +162,7 @@ def build_search_url(selected_year, order_type):
     search_url = base_url + "?" + "&".join(params)
     return search_url
 
-def extract_search_items(page):
+def extract_search_items(page, download_files=False):
     """Extract data from all article elements on current page"""
     data = []
     print(f"Extracting data from: {page.url}")
@@ -212,7 +217,6 @@ def extract_search_items(page):
         except:
             item_data["Upload Date"] = None
 
-        # TODO: Make file download optional (can be handled by a separate batch script)
         # Extract document links (PDF and DOCX)
         doc_links = article.locator("a[href]").all()
 
@@ -222,16 +226,18 @@ def extract_search_items(page):
             if href and "determination" in link_text:
                 item_data["Determination"] = True
                 item_data["Determination Doc"] = href
-                output_folder = os.path.join(pdf_folder, "determinations")
-                print(f"Downloading file: {href}")
-                download_file(href, output_folder)
+                if download_files:
+                    output_folder = os.path.join(pdf_folder, "determinations")
+                    print(f"Downloading file: {href}")
+                    download_file(href, output_folder)
 
             elif href and "tribunal" in link_text:
                 item_data["Tribunal"] = True
                 item_data["Tribunal Doc"] = href
-                output_folder = os.path.join(pdf_folder, "tribunals")
-                print(f"Downloading file: {href}")
-                download_file(href, output_folder)
+                if download_files:
+                    output_folder = os.path.join(pdf_folder, "tribunals")
+                    print(f"Downloading file: {href}")
+                    download_file(href, output_folder)
 
         if item_data.get("Title") or item_data.get("Determination Doc") or item_data.get("Tribunal Doc"):
             data.append(item_data)
@@ -277,7 +283,7 @@ def get_search_results():
     results = []
 
     # Get user input
-    selected_year, selected_type = get_user_preferences()
+    selected_year, selected_type, download_files = get_user_preferences()
 
     # Disaggregate searches for 'All' years
     if selected_year == "All":
@@ -344,7 +350,7 @@ def get_search_results():
                         print(f"Processing page {current_page} of {total_pages}")
 
                         # Extract data from current page
-                        data = extract_search_items(page)
+                        data = extract_search_items(page, download_files)
                         results.extend(data)
 
                         # Write results incrementally
