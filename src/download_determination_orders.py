@@ -15,7 +15,6 @@ start_year = 2015
 # Get the current year for year list
 current_year = datetime.datetime.now().year
 
-
 def get_user_preferences():
     print(
         f"Select a year from {start_year}-{current_year} or enter 'All' for all years."
@@ -135,10 +134,10 @@ def write_to_csv(data):
             "Subject",
             "Determination",
             "DR No.",
-            "Determination PDF",
+            "Determination Doc",
             "Tribunal",
             "TR No.",
-            "Tribunal PDF",
+            "Tribunal Doc",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -173,9 +172,9 @@ def extract_search_items(page):
     for article in articles:
         item_data = {
             "Determination": False,
-            "Determination PDF": None,
+            "Determination Doc": None,
             "Tribunal": False,
-            "Tribunal PDF": None,
+            "Tribunal Doc": None,
         }
 
         # Extract Title from h3
@@ -222,19 +221,19 @@ def extract_search_items(page):
             link_text = link.inner_text().lower()
             if href and "determination" in link_text:
                 item_data["Determination"] = True
-                item_data["Determination PDF"] = href
+                item_data["Determination Doc"] = href
                 output_folder = os.path.join(pdf_folder, "determinations")
                 print(f"Downloading file: {href}")
                 download_file(href, output_folder)
 
             elif href and "tribunal" in link_text:
                 item_data["Tribunal"] = True
-                item_data["Tribunal PDF"] = href
+                item_data["Tribunal Doc"] = href
                 output_folder = os.path.join(pdf_folder, "tribunals")
                 print(f"Downloading file: {href}")
                 download_file(href, output_folder)
 
-        if item_data.get("Title") or item_data.get("Determination PDF") or item_data.get("Tribunal PDF"):
+        if item_data.get("Title") or item_data.get("Determination Doc") or item_data.get("Tribunal Doc"):
             data.append(item_data)
 
     return data

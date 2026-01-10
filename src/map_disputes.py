@@ -38,10 +38,10 @@ for index, row in df.iterrows():
     <b>Landlord Name(s):</b> {row['Landlord Name(s)']}<br>
     <b>Landlord Role:</b> {row['Landlord Role']}<br>
     """
-    if pd.notna(row["Determination PDF"]) and row["Determination PDF"].strip() != "":
-        popup_text += f'<b>Link:</b> <a href="{row["Determination PDF"]}" target="_blank">Determination Order PDF</a><br>'
-    if pd.notna(row["Tribunal PDF"]) and row["Tribunal PDF"].strip() != "":
-        popup_text += f'<b>Link:</b> <a href="{row["Tribunal PDF"]}" target="_blank">Tribunal Report PDF</a>'
+    if pd.notna(row["Determination Doc"]) and row["Determination Doc"].strip() != "":
+        popup_text += f'<b>Link:</b> <a href="{row["Determination Doc"]}" target="_blank">Determination Order</a><br>'
+    if pd.notna(row["Tribunal Doc"]) and row["Tribunal Doc"].strip() != "":
+        popup_text += f'<b>Link:</b> <a href="{row["Tribunal Doc"]}" target="_blank">Tribunal Report</a>'
 
     folium.Marker(
         location=[row["Latitude"], row["Longitude"]],

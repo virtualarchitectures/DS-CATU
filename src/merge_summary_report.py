@@ -23,7 +23,7 @@ def normalize_filenames(name):
 
 
 # Extract and decode filenames in both DataFrames
-df1["Determination Filename Decoded"] = df1["Determination PDF"].apply(
+df1["Determination Filename Decoded"] = df1["Determination Doc"].apply(
     normalize_filenames
 )
 df2["Text Filename Decoded"] = df2["Text Filename"].apply(normalize_filenames)
