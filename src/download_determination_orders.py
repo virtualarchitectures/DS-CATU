@@ -213,6 +213,8 @@ def get_search_items(page):
             pdf_link = link.get_attribute("href")
             link_text = link.inner_text().lower()
 
+            # TODO: Add download of DOCX documents
+            # TODO: Make file download optional (can be handled by a separate batch script)
             # extract determination and tribunal order information
             if "determination" in link_text:
                 item_data["Determination"] = True
@@ -280,9 +282,11 @@ def get_search_results():
                     print("No results found.")
                     continue
 
+                # TODO: Is this still required?
                 # wait for cookies notification
                 time.sleep(2)
 
+                # TODO: Is this still required?
                 try:
                     # click on the privacy popup button
                     page.click("#onetrust-accept-btn-handler", timeout=2000)
