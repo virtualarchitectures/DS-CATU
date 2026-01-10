@@ -249,6 +249,8 @@ def get_search_results():
     else:
         year_list = [selected_year]
 
+    # NOTE: Previous version of the website didn't return all results
+    # TODO: Check if site returns ALL results or if search disaggregation still required
     # disaggregate searches for 'All' order types
     if selected_type == "adjudication-order|tribunal-order":
         order_list = ["adjudication-order", "tribunal-order"]
