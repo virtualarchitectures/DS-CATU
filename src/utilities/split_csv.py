@@ -6,7 +6,7 @@ def split_csv(input_file, batch_size, output_dir):
     # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
-    with open(input_file, mode="r", newline="") as infile:
+    with open(input_file, mode="r", newline="", encoding="utf8") as infile:
         reader = csv.reader(infile)
         header = next(reader)
 
@@ -17,7 +17,9 @@ def split_csv(input_file, batch_size, output_dir):
             current_batch.append(row)
             if (row_num + 1) % batch_size == 0:
                 output_file = os.path.join(output_dir, f"batch_{batch_count}.csv")
-                with open(output_file, mode="w", newline="") as outfile:
+                with open(
+                    output_file, mode="w", newline="", encoding="utf8"
+                ) as outfile:
                     writer = csv.writer(outfile)
                     writer.writerow(header)
                     writer.writerows(current_batch)
@@ -27,7 +29,7 @@ def split_csv(input_file, batch_size, output_dir):
         # Write any remaining rows that did not make a full batch
         if current_batch:
             output_file = os.path.join(output_dir, f"batch_{batch_count}.csv")
-            with open(output_file, mode="w", newline="") as outfile:
+            with open(output_file, mode="w", newline="", encoding="utf8") as outfile:
                 writer = csv.writer(outfile)
                 writer.writerow(header)
                 writer.writerows(current_batch)

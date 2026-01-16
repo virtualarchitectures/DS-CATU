@@ -25,7 +25,7 @@ def get_file_paths(input_folder):
 
 
 def read_keywords(file_path):
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf8") as file:
         keywords = [line.strip() for line in file.readlines() if line.strip()]
     return keywords
 
@@ -233,7 +233,7 @@ def read_determination_orders(file_path, address_method):
     base_name, extension = os.path.splitext(file_name)
 
     # Read the file contents
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf8") as file:
         text = file.read()
 
         # Extract Landlord and Tenant Names
@@ -252,7 +252,9 @@ def read_determination_orders(file_path, address_method):
         keywords_list = find_keywords(text)
 
         # Write to CSV file
-        with open(csv_output_file_path, mode="a", newline="") as csv_file:
+        with open(
+            csv_output_file_path, mode="a", newline="", encoding="utf8"
+        ) as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(
                 [

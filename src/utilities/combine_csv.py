@@ -7,13 +7,13 @@ def combine_csv(input_dir, output_file):
     csv_files = [f for f in os.listdir(input_dir) if f.endswith(".csv")]
     csv_files.sort()  # Ensure files are processed in the correct order
 
-    with open(output_file, mode="w", newline="") as outfile:
+    with open(output_file, mode="w", newline="", encoding="utf8") as outfile:
         writer = csv.writer(outfile)
         header_written = False
 
         for csv_file in csv_files:
             input_file = os.path.join(input_dir, csv_file)
-            with open(input_file, mode="r", newline="") as infile:
+            with open(input_file, mode="r", newline="", encoding="utf8") as infile:
                 reader = csv.reader(infile)
                 header = next(reader)
 

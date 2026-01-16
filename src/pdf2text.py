@@ -90,7 +90,7 @@ def pdf2text(file_path, output_folder, subfolder, page_numbers=False):
     # Write combined text to a file in the corresponding subfolder
     output_file_path = os.path.join(subfolder_path, f"{base_name}.txt")
     print(f"Output: {output_file_path}")
-    with open(output_file_path, mode="w") as f:
+    with open(output_file_path, mode="w", encoding="utf8") as f:
         f.write(combined_text)
 
 
