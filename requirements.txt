@@ -1,7 +1,6 @@
 pandas
 pdf2image
 pytesseract
-pytest-playwright
-python-dateutil
+playwright
 requests
 python-dotenv

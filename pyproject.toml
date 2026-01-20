@@ -1,0 +1,20 @@
+[project]
+name = "ds-catu"
+version = "0.1.0"
+description = "Tools for downloading and processing RTB determination orders"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas",
+    "pdf2image",
+    "pytesseract",
+    "playwright",
+    "requests",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
