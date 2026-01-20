@@ -1,11 +1,13 @@
+import csv
+import datetime
 import os
 import time
-import datetime
-from dateutil import parser
-import csv
+
 import requests
+from dateutil import parser
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright
 from requests.adapters import HTTPAdapter, Retry
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 pdf_folder = "data/downloaded_pdfs/"
 csv_output_file_path = "data/summary/case_metadata.csv"
@@ -14,6 +16,7 @@ csv_output_file_path = "data/summary/case_metadata.csv"
 start_year = 2015
 # Get the current year for year list
 current_year = datetime.datetime.now().year
+
 
 def get_user_preferences():
     print(
@@ -80,7 +83,9 @@ def download_file(file_link, output_folder, max_retries=2):
         response = session.head(file_link)
         content_type = response.headers.get("content-type", "").split(";")[0].strip()
         if response.status_code != 200:
-            error = f"Error: Unable to download file.\nStatus Code: {response.status_code}"
+            error = (
+                f"Error: Unable to download file.\nStatus Code: {response.status_code}"
+            )
             print(error)
             return error
 
@@ -148,6 +153,7 @@ def write_to_csv(data):
         writer.writeheader()
         writer.writerows(cleaned_data)
 
+
 def build_search_url(selected_year, order_type):
     """Build search URL based on selected filters"""
     base_url = "https://rtb.ie/disputes/dispute-outcomes-and-orders/adjudication-and-tribunal-orders/"
@@ -162,13 +168,16 @@ def build_search_url(selected_year, order_type):
     search_url = base_url + "?" + "&".join(params)
     return search_url
 
+
 def extract_search_items(page, download_files=False):
     """Extract data from all article elements on current page"""
     data = []
     print(f"Extracting data from: {page.url}")
 
     # Find the container with search results using Locator API
-    container = page.locator('div[data-name="adjudication_orders_and_tribunal_orders_listing"]')
+    container = page.locator(
+        'div[data-name="adjudication_orders_and_tribunal_orders_listing"]'
+    )
 
     # Get all article elements
     articles = container.locator("article").all()
@@ -184,14 +193,20 @@ def extract_search_items(page, download_files=False):
 
         # Extract Title from h3
         try:
-            item_data["Title"] = article.get_by_role("heading").inner_text(timeout=locator_timeout).strip()
+            item_data["Title"] = (
+                article.get_by_role("heading")
+                .inner_text(timeout=locator_timeout)
+                .strip()
+            )
         except:
             item_data["Title"] = None
 
         # Extract Subject
         try:
             subject_span = article.locator('span:has-text("Subject of Dispute") + span')
-            item_data["Subject"] = subject_span.inner_text(timeout=locator_timeout).strip()
+            item_data["Subject"] = subject_span.inner_text(
+                timeout=locator_timeout
+            ).strip()
         except:
             item_data["Subject"] = None
 
@@ -211,7 +226,9 @@ def extract_search_items(page, download_files=False):
 
         # Extract Upload Date
         try:
-            datetime_text = article.get_by_role('time').inner_text(timeout=locator_timeout).strip()
+            datetime_text = (
+                article.get_by_role("time").inner_text(timeout=locator_timeout).strip()
+            )
             parsed_date = parser.parse(datetime_text)
             item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
         except:
@@ -239,7 +256,11 @@ def extract_search_items(page, download_files=False):
                     print(f"Downloading file: {href}")
                     download_file(href, output_folder)
 
-        if item_data.get("Title") or item_data.get("Determination Doc") or item_data.get("Tribunal Doc"):
+        if (
+            item_data.get("Title")
+            or item_data.get("Determination Doc")
+            or item_data.get("Tribunal Doc")
+        ):
             data.append(item_data)
 
     return data
@@ -248,7 +269,7 @@ def extract_search_items(page, download_files=False):
 def has_next_page(page):
     """Check if there's a next page link"""
     try:
-        next_link = page.locator('a.facetwp-page.next')
+        next_link = page.locator("a.facetwp-page.next")
         return next_link.count() > 0
     except:
         return False
@@ -261,9 +282,9 @@ def go_to_next_page(page):
         # Set up listener for the 'refresh' request
         with page.expect_response(
             lambda response: "refresh" in response.url and response.status == 200,
-            timeout=10000
+            timeout=10000,
         ) as response_info:
-            next_link = page.locator('a.facetwp-page.next')
+            next_link = page.locator("a.facetwp-page.next")
             next_link.click()
 
         response_info.value
@@ -301,11 +322,8 @@ def get_search_results():
 
     with sync_playwright() as p:
         # Launch browser
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            bypass_csp=True,
-            ignore_https_errors=True
-        )
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(bypass_csp=True, ignore_https_errors=True)
         page = context.new_page()
         start_time = time.time()
 
@@ -331,7 +349,10 @@ def get_search_results():
 
                     try:
                         # wait for result items to be present
-                        page.wait_for_selector(".adjudication-orders-and-tribunal-orders-item", timeout=20000)
+                        page.wait_for_selector(
+                            ".adjudication-orders-and-tribunal-orders-item",
+                            timeout=20000,
+                        )
                     except PlaywrightTimeoutError:
                         # no results found, move to next year/order_type
                         print("No results found.")
@@ -339,7 +360,7 @@ def get_search_results():
 
                     # get total pages from pager using Locator API
                     try:
-                        last_page_elem = page.locator('a.facetwp-page.last')
+                        last_page_elem = page.locator("a.facetwp-page.last")
                         total_pages = int(last_page_elem.inner_text())
                     except:
                         total_pages = 1
@@ -374,18 +395,22 @@ def get_search_results():
             print(f"Total entries scraped: {len(results)}")
             # Validate results count against expected total
             try:
-                expected_total_elem = page.locator('span[data-facetwp-total]')
+                expected_total_elem = page.locator("span[data-facetwp-total]")
                 expected_total = int(expected_total_elem.inner_text())
-                
+
                 if len(results) != expected_total:
-                    print(f"Warning: Scraped {len(results)} entries but expected {expected_total}")
+                    print(
+                        f"Warning: Scraped {len(results)} entries but expected {expected_total}"
+                    )
             except:
                 pass
 
             browser.close()
             end_time = time.time()
             elapsed_time = end_time - start_time
-            print(f"Finished in: {elapsed_time:.2f} seconds ({elapsed_time/60:.2f} minutes)")
+            print(
+                f"Finished in: {elapsed_time:.2f} seconds ({elapsed_time / 60:.2f} minutes)"
+            )
 
     print(f"Results saved to: {csv_output_file_path}")
 
