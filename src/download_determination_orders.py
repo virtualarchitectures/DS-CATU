@@ -192,46 +192,40 @@ def extract_search_items(page, download_files=False):
         }
 
         # Extract Title from h3
-        try:
-            item_data["Title"] = (
-                article.get_by_role("heading")
-                .inner_text(timeout=locator_timeout)
-                .strip()
-            )
-        except:
+        heading = article.get_by_role("heading")
+        if heading.count() > 0:
+            item_data["Title"] = heading.inner_text(timeout=locator_timeout).strip()
+        else:
             item_data["Title"] = None
 
         # Extract Subject
-        try:
-            subject_span = article.locator('span:has-text("Subject of Dispute") + span')
-            item_data["Subject"] = subject_span.inner_text(
-                timeout=locator_timeout
-            ).strip()
-        except:
+        subject_span = article.locator('span:has-text("Subject of Dispute") + span')
+        if subject_span.count() > 0:
+            item_data["Subject"] = subject_span.inner_text(timeout=locator_timeout).strip()
+        else:
             item_data["Subject"] = None
 
         # Extract DR No.
-        try:
-            dr_span = article.locator('span:has-text("DR No.") + span')
+        dr_span = article.locator('span:has-text("DR No.") + span')
+        if dr_span.count() > 0:
             item_data["DR No."] = dr_span.inner_text(timeout=locator_timeout).strip()
-        except:
+        else:
             item_data["DR No."] = None
 
         # Extract TR No.
-        try:
-            tr_span = article.locator('span:has-text("TR No.") + span')
+        tr_span = article.locator('span:has-text("TR No.") + span')
+        if tr_span.count() > 0:
             item_data["TR No."] = tr_span.inner_text(timeout=locator_timeout).strip()
-        except:
+        else:
             item_data["TR No."] = None
 
         # Extract Upload Date
-        try:
-            datetime_text = (
-                article.get_by_role("time").inner_text(timeout=locator_timeout).strip()
-            )
+        time_elem = article.get_by_role("time")
+        if time_elem.count() > 0:
+            datetime_text = time_elem.inner_text(timeout=locator_timeout).strip()
             parsed_date = parser.parse(datetime_text)
             item_data["Upload Date"] = parsed_date.strftime("%d/%m/%Y")
-        except:
+        else:
             item_data["Upload Date"] = None
 
         # Extract document links (PDF and DOCX)
@@ -268,11 +262,8 @@ def extract_search_items(page, download_files=False):
 
 def has_next_page(page):
     """Check if there's a next page link"""
-    try:
-        next_link = page.locator("a.facetwp-page.next")
-        return next_link.count() > 0
-    except:
-        return False
+    next_link = page.locator("a.facetwp-page.next")
+    return next_link.count() > 0
 
 
 def go_to_next_page(page):
@@ -339,13 +330,10 @@ def get_search_results():
                     time.sleep(1)
 
                     # Handle cookie consent if present
-                    try:
-                        cookie_button = page.locator("#onetrust-accept-btn-handler")
-                        if cookie_button.count() > 0:
-                            cookie_button.click()
-                            time.sleep(1)
-                    except:
-                        pass
+                    cookie_button = page.locator("#onetrust-accept-btn-handler")
+                    if cookie_button.count() > 0:
+                        cookie_button.click()
+                        time.sleep(1)
 
                     try:
                         # wait for result items to be present
@@ -359,10 +347,10 @@ def get_search_results():
                         continue
 
                     # get total pages from pager using Locator API
-                    try:
-                        last_page_elem = page.locator("a.facetwp-page.last")
+                    last_page_elem = page.locator("a.facetwp-page.last")
+                    if last_page_elem.count() > 0:
                         total_pages = int(last_page_elem.inner_text())
-                    except:
+                    else:
                         total_pages = 1
                     print(f"Total pages: {total_pages}")
 
@@ -394,16 +382,13 @@ def get_search_results():
         finally:
             print(f"Total entries scraped: {len(results)}")
             # Validate results count against expected total
-            try:
-                expected_total_elem = page.locator("span[data-facetwp-total]")
+            expected_total_elem = page.locator("span[data-facetwp-total]")
+            if expected_total_elem.count() > 0:
                 expected_total = int(expected_total_elem.inner_text())
-
                 if len(results) != expected_total:
                     print(
                         f"Warning: Scraped {len(results)} entries but expected {expected_total}"
                     )
-            except:
-                pass
 
             browser.close()
             end_time = time.time()
