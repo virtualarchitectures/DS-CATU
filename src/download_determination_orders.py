@@ -50,12 +50,6 @@ def get_user_preferences():
         print("Invalid option selected.")
         exit()
 
-    if selected_year == "All" and selected_option == "All":
-        print(
-            "Error: Cannot select 'All' for both year and type. Please select at least one specific filter."
-        )
-        exit()
-
     selected_type = order_types[selected_option]
 
     # Prompt for file download preference
@@ -158,29 +152,6 @@ def write_to_csv(data):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(cleaned_data)
-
-
-def build_search_url(selected_year, selected_type):
-    """Build search URL based on selected filters"""
-    base_url = "https://rtb.ie/disputes/dispute-outcomes-and-orders/adjudication-and-tribunal-orders/"
-
-    params = []
-
-    # Add year parameter if not "All"
-    if selected_year != "All":
-        params.append(f"_adjudication_orders_and_tribunal_orders_date={selected_year}")
-
-    # Add type parameter if not "all"
-    if selected_type != "all":
-        params.append(
-            f"_adjudication_orders_and_tribunal_orders_post_type={selected_type}"
-        )
-
-    # Build final URL
-    if params:
-        return base_url + "?" + "&".join(params)
-    else:
-        return base_url
 
 
 def build_search_url(selected_year, order_type):
