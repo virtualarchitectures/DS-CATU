@@ -383,15 +383,6 @@ def get_search_results():
 
         finally:
             print(f"Total entries scraped: {len(results)}")
-            # Validate results count against expected total
-            expected_total_elem = page.locator("span[data-facetwp-total]")
-            if expected_total_elem.count() > 0:
-                expected_total = int(expected_total_elem.inner_text())
-                if len(results) != expected_total:
-                    print(
-                        f"Warning: Scraped {len(results)} entries but expected {expected_total}"
-                    )
-
             browser.close()
             end_time = time.time()
             elapsed_time = end_time - start_time
