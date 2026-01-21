@@ -9,7 +9,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 from requests.adapters import HTTPAdapter, Retry
 
-pdf_folder = "data/downloaded_pdfs/"
+doc_folder = "data/downloaded_docs/"
 csv_output_file_path = "data/summary/case_metadata.csv"
 
 # First year of available data
@@ -240,7 +240,7 @@ def extract_search_items(page, download_files=False):
                 item_data["Determination"] = True
                 item_data["Determination Doc"] = href
                 if download_files:
-                    output_folder = os.path.join(pdf_folder, "determinations")
+                    output_folder = os.path.join(doc_folder, "determinations")
                     print(f"Downloading file: {href}")
                     download_file(href, output_folder)
 
@@ -248,7 +248,7 @@ def extract_search_items(page, download_files=False):
                 item_data["Tribunal"] = True
                 item_data["Tribunal Doc"] = href
                 if download_files:
-                    output_folder = os.path.join(pdf_folder, "tribunals")
+                    output_folder = os.path.join(doc_folder, "tribunals")
                     print(f"Downloading file: {href}")
                     download_file(href, output_folder)
 

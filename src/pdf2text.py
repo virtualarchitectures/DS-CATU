@@ -2,7 +2,7 @@ import os
 from pdf2image import convert_from_path
 import pytesseract
 
-input_folder = "data/downloaded_pdfs/"
+input_folder = "data/downloaded_docs/"
 output_folder = "data/converted_text/"
 
 
