@@ -4,3 +4,4 @@ pytesseract
 playwright
 requests
 python-dotenv
+docling

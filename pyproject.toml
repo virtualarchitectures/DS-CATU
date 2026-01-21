@@ -11,6 +11,8 @@ dependencies = [
     "playwright",
     "requests",
     "python-dotenv",
+    "tree-sitter>=0.25.2",
+    "docling>=2.69.1",
 ]
 
 [dependency-groups]
