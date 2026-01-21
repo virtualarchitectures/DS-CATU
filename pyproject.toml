@@ -6,13 +6,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "pandas",
-    "pdf2image",
-    "pytesseract",
     "playwright",
     "requests",
     "python-dotenv",
-    "tree-sitter>=0.25.2",
-    "docling>=2.69.1",
+    "docling",
 ]
 
 [dependency-groups]

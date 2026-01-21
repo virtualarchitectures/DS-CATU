@@ -1,6 +1,4 @@
 pandas
-pdf2image
-pytesseract
 playwright
 requests
 python-dotenv
